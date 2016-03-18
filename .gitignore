@@ -1,0 +1,5 @@
+.idea/
+excel_data/
+out/
+*.xlsx
+*.xls
