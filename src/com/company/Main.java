@@ -9,10 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Main {
 
@@ -62,47 +59,50 @@ public class Main {
 //        }
 
 
-        String[] filePaths = new String[]{"excel_data\\Din.xlsx", "excel_data\\KGP.xlsx", "excel_data\\Spalm Srl.xlsx"};
-        XSSFWorkbook[] workbooks = new XSSFWorkbook[]{};
-        try
-        {
-            FileInputStream file = new FileInputStream(new File("excel_data\\A008 H lavoro Riparti da Qui NON Tagliato.xlsx"));
-
-            //Create Workbook instance holding reference to .xlsx file
-            workbook = new XSSFWorkbook(file);
-
-            //Get first/desired sheet from the workbook
-            sheet = workbook.getSheetAt(0);
-
-            //Iterate through each rows one by one
-            Iterator<Row> rowIterator = sheet.iterator();
-            while (rowIterator.hasNext())
-            {
-                Row row = rowIterator.next();
-                //For each row, iterate through all the columns
-                Iterator<Cell> cellIterator = row.cellIterator();
-
-                while (cellIterator.hasNext())
-                {
-                    Cell cell = cellIterator.next();
-                    //Check the cell type and format accordingly
-                    switch (cell.getCellType())
-                    {
-                        case Cell.CELL_TYPE_NUMERIC:
-                            System.out.print(cell.getNumericCellValue() + " ");
-                            break;
-                        case Cell.CELL_TYPE_STRING:
-                            System.out.print(cell.getStringCellValue() + " ");
-                            break;
-                    }
-                }
-                System.out.println("");
-            }
-            file.close();
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+//        String[] filePaths = new String[]{"excel_data\\Din.xlsx", "excel_data\\KGP.xlsx", "excel_data\\Spalm Srl.xlsx"};
+//        XSSFWorkbook[] workbooks = new XSSFWorkbook[]{};
+//        try
+//        {
+//            FileInputStream file = new FileInputStream(new File("excel_data\\A008 H lavoro Riparti da Qui NON Tagliato.xlsx"));
+//
+//            //Create Workbook instance holding reference to .xlsx file
+//            workbook = new XSSFWorkbook(file);
+//
+//            //Get first/desired sheet from the workbook
+//            sheet = workbook.getSheetAt(0);
+//
+//            //Iterate through each rows one by one
+//            Iterator<Row> rowIterator = sheet.iterator();
+//            while (rowIterator.hasNext())
+//            {
+//                Row row = rowIterator.next();
+//                //For each row, iterate through all the columns
+//                Iterator<Cell> cellIterator = row.cellIterator();
+//
+//                while (cellIterator.hasNext())
+//                {
+//                    Cell cell = cellIterator.next();
+//                    //Check the cell type and format accordingly
+//                    switch (cell.getCellType())
+//                    {
+//                        case Cell.CELL_TYPE_NUMERIC:
+//                            System.out.print(cell.getNumericCellValue() + " ");
+//                            break;
+//                        case Cell.CELL_TYPE_STRING:
+//                            System.out.print(cell.getStringCellValue() + " ");
+//                            break;
+//                    }
+//                }
+//                System.out.println("");
+//            }
+//            file.close();
+//        }
+//        catch (Exception e)
+//        {
+//            e.printStackTrace();
+//        }
+        XFileReader fr = new XFileReader();
+        HashMap<String, Row> data = fr.loadFromFile("excel_data\\Din.xlsx");
+        System.out.println(data.size());
     }
 }
