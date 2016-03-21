@@ -1,6 +1,9 @@
 package com.company;
 
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -124,31 +127,96 @@ public class Main {
 
         }
         System.out.println("mapB size = " + mapB.size());
+
+        final HashMap<Integer, Integer> mapping = new HashMap<>();
+        mapping.put(5, 3);
+        mapping.put(6, 2);
+        mapping.put(7, 2);
+        mapping.put(9, 5);
+        mapping.put(10, 6);
+        mapping.put(11, 7);
+        mapping.put(12, 8);
+        mapping.put(22, 1);
         int common = 0, distinct = 0;
+
+        final CellStyle style = workbook.createCellStyle();
+        final Font font = workbook.createFont();
+        font.setColor(HSSFColor.RED.index);
+        style.setFont(font);
+
 
         for (String index : mapA.keySet()) {
             if (mapB.containsKey(index)) {
                 common++;
-                mapB.remove(index);
                 // the index is present in both maps
-                update(mapA, mapB.get(index), index);
+                try {
+                    update(mapA.get(index), mapB.get(index), index, mapping);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("failed to update row corresponding to " + index + ", error: " + e.getMessage());
+                }
+                mapB.remove(index);
             } else {
                 distinct++;
+                mark(mapA.get(index), "Assente", style);
             }
         }
         distinct = distinct + mapB.size();
         System.out.println(String.valueOf(common) + " keys are common");
         System.out.println(String.valueOf(distinct) + " keys are distinct");
+
+
     }
 
     /**
-     * Updates information stored in target under key index with data in given row.
-     * @param target
+     * Adds a cell at the end of the row with given string content and apply given style.
      * @param row
-     * @param index
+     * @param marker
+     * @param style
      */
-    private static void update(HashMap<String, Row> target, Row row, String index) {
+    private static void mark(Row row, String marker, CellStyle style) {
+        Cell c = row.createCell(row.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
+        c.setCellValue(marker);
+        c.setCellStyle(style);
 
+    }
+
+    /**
+     * Updates information stored in target row under key index with data in given row.
+     *
+     * @param target
+     * @param info
+     * @param index
+     * @param mapping correspondence between row cells of the target and info
+     */
+    private static void update(Row target, final Row info, final String index, final HashMap<Integer, Integer> mapping) throws Exception {
+        for (int pos : mapping.keySet()) {
+            Cell targetCell = target.getCell(pos);
+            Cell infoCell = info.getCell(mapping.get(pos));
+            int targetCellType = targetCell.getCellType();
+            int infoCellType = infoCell.getCellType();
+
+            if (infoCellType != targetCellType) {
+                throw new Exception("cell type mismatch: " + targetCellType + " vs " + infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
+            }
+
+            if (infoCellType == Cell.CELL_TYPE_NUMERIC) {
+                targetCell.setCellValue(infoCell.getNumericCellValue());
+            }
+
+            switch (infoCellType) {
+                case Cell.CELL_TYPE_STRING:
+                    targetCell.setCellValue(infoCell.getStringCellValue());
+                    break;
+                case Cell.CELL_TYPE_NUMERIC:
+                    targetCell.setCellValue(infoCell.getNumericCellValue());
+                    break;
+                default:
+                    throw new Exception("Unsupported cell type: "+ infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
+
+
+            }
+        }
 
     }
 
