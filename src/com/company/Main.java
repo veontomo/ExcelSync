@@ -103,11 +103,12 @@ public class Main {
 //        }
         String folderName = "excel_data\\";
         String[] fileNames = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        HashMap<String, Row> big = new HashMap<>();
         for (String fileName : fileNames) {
             XFileReader fr = new XFileReader(folderName + fileName, 0);
             HashMap<String, Row> data = fr.loadFromFile();
             System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
-            HashMap<String, Row> data2 = addCellData(data, fileName);
+            addCellData(data, fileName);
             System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
             System.out.println(data.size());
 
@@ -121,12 +122,11 @@ public class Main {
      * @param marker a content of the cell
      * @return the reference
      */
-    private static HashMap<String, Row> addCellData(HashMap<String, Row> hashMap, String marker) {
+    private static void addCellData(HashMap<String, Row> hashMap, String marker) {
         for (String item : hashMap.keySet()){
             Row row = hashMap.get(item);
             Cell cell = row.createCell(row.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
             cell.setCellValue(marker);
         }
-        return hashMap;
     }
 }
