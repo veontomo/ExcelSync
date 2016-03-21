@@ -101,19 +101,44 @@ public class Main {
 //        {
 //            e.printStackTrace();
 //        }
+
+
         String folderName = "excel_data\\";
         String[] fileNames = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
-        HashMap<String, Row> big = new HashMap<>();
+        HashMap<String, Row> totalMap = new HashMap<>();
         for (String fileName : fileNames) {
             XFileReader fr = new XFileReader(folderName + fileName, 0);
-            HashMap<String, Row> data = fr.loadFromFile();
-            System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
-            addCellData(data, fileName);
-            System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
-            System.out.println(data.size());
-
+            HashMap<String, Row> smallMap = fr.loadFromFile();
+            smallMap.remove("Dominio");
+            System.out.println(smallMap.get(smallMap.keySet().iterator().next()).getPhysicalNumberOfCells());
+            addCellData(smallMap, fileName);
+            try {
+                join(totalMap, smallMap);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println(smallMap.get(smallMap.keySet().iterator().next()).getPhysicalNumberOfCells());
+            System.out.println(smallMap.size());
         }
 
+
+
+    }
+
+    /**
+     * Joins two hash maps.
+     * If there is an index in common, an exception will be thrown.
+     * @param big
+     * @param data
+     * @return
+     */
+    private static void join(HashMap<String, Row> big, final HashMap<String, Row> data) throws Exception {
+        for(String index : data.keySet()){
+            if (big.containsKey(index)){
+                throw new Exception("key " + index + " is already present!");
+            }
+            big.put(index, data.get(index));
+        }
     }
 
     /**
