@@ -14,16 +14,32 @@ import java.util.Iterator;
  * Reads an xls file from disk
  */
 public class XFileReader {
+
+    /**
+     * Number of the column in excel file to be used as an index when constructing a hash map.
+     */
+    private int indexColNum = 0;
+
+    /**
+     * Path to an excel file to be read
+     */
+    private String filePath;
+
+    public XFileReader(String filePath, int index) {
+        this.filePath = filePath;
+        this.indexColNum = index;
+    }
+
+
     /**
      * Loads data from a given excel file
-     * @param path
+     *
      * @return
      */
-    public HashMap<String, Row> loadFromFile(String path){
+    public HashMap<String, Row> loadFromFile() {
         HashMap<String, Row> data = new HashMap<>();
-        try
-        {
-            FileInputStream file = new FileInputStream(new File(path));
+        try {
+            FileInputStream file = new FileInputStream(new File(filePath));
 
             //Create Workbook instance holding reference to .xlsx file
             XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -35,12 +51,23 @@ public class XFileReader {
             Iterator<Row> rowIterator = sheet.iterator();
             String key;
             Row row;
-            while (rowIterator.hasNext())
-            {
+            Cell indexCell;
+            while (rowIterator.hasNext()) {
                 row = rowIterator.next();
-                key = row.getCell(1).getStringCellValue();
+                indexCell = row.getCell(indexColNum);
+                switch (indexCell.getCellType()) {
+                    case Cell.CELL_TYPE_STRING:
+                        key = indexCell.getStringCellValue();
+                        break;
+                    case Cell.CELL_TYPE_NUMERIC:
+                        key = String.valueOf(indexCell.getNumericCellValue());
+                        break;
+                    default:
+                        throw new Exception("Non supported cell type.");
+                }
+//                key = row.getCell(indexColNum).getStringCellValue();
 
-                if (data.containsKey(key)){
+                if (data.containsKey(key)) {
                     System.out.println("duplicate key: " + key);
                 } else {
                     data.put(key, row);
@@ -66,9 +93,7 @@ public class XFileReader {
 //                System.out.println("");
             }
             file.close();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return data;
@@ -76,20 +101,21 @@ public class XFileReader {
 
     /**
      * Returns true if the rows have the same content. Otherwise returns false.
+     *
      * @param r1
      * @param r2
      * @return
      */
-    public boolean areEqual(Row r1, Row r2){
+    public boolean areEqual(Row r1, Row r2) {
         int size1 = r1.getPhysicalNumberOfCells();
-        if (size1 != r2.getPhysicalNumberOfCells()){
+        if (size1 != r2.getPhysicalNumberOfCells()) {
             return false;
         }
         Cell c1, c2;
-        for (int i = 0; i < size1; i++){
+        for (int i = 0; i < size1; i++) {
             c1 = r1.getCell(i);
             c2 = r2.getCell(i);
-            if (!areEqual(c1, c2)){
+            if (!areEqual(c1, c2)) {
                 return false;
             }
         }
@@ -98,21 +124,21 @@ public class XFileReader {
 
     /**
      * Returns true if the cells have the same content. Otherwise returns false.
+     *
      * @param c1
      * @param c2
      * @return
      */
-    public boolean areEqual(Cell c1, Cell c2){
+    public boolean areEqual(Cell c1, Cell c2) {
         int t1 = c1.getCellType();
         int t2 = c2.getCellType();
-        if (t1 != t2){
+        if (t1 != t2) {
             return false;
         }
         /// TODO
         return false;
 
     }
-
 
 
 }

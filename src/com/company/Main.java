@@ -101,8 +101,32 @@ public class Main {
 //        {
 //            e.printStackTrace();
 //        }
-        XFileReader fr = new XFileReader();
-        HashMap<String, Row> data = fr.loadFromFile("excel_data\\Din.xlsx");
-        System.out.println(data.size());
+        String folderName = "excel_data\\";
+        String[] fileNames = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        for (String fileName : fileNames) {
+            XFileReader fr = new XFileReader(folderName + fileName, 0);
+            HashMap<String, Row> data = fr.loadFromFile();
+            System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
+            HashMap<String, Row> data2 = addCellData(data, fileName);
+            System.out.println(data.get(data.keySet().iterator().next()).getPhysicalNumberOfCells());
+            System.out.println(data.size());
+
+        }
+
+    }
+
+    /**
+     * Modifies a hash map by adding a cell to the end of each row with given string content.
+     * @param hashMap a hash map
+     * @param marker a content of the cell
+     * @return the reference
+     */
+    private static HashMap<String, Row> addCellData(HashMap<String, Row> hashMap, String marker) {
+        for (String item : hashMap.keySet()){
+            Row row = hashMap.get(item);
+            Cell cell = row.createCell(row.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
+            cell.setCellValue(marker);
+        }
+        return hashMap;
     }
 }
