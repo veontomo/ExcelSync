@@ -155,10 +155,10 @@ public class Main {
                     e.printStackTrace();
                     System.out.println("failed to update row corresponding to " + index + ", error: " + e.getMessage());
                 }
-//                mapB.remove(index);
+                mapB.remove(index);
             } else {
                 distinct++;
-//                addCell(mapA.get(index), cellsNumA, "Assente", style);
+                addCell(mapA.get(index), cellsNumA, "Assente", style);
             }
         }
 
@@ -168,12 +168,22 @@ public class Main {
             populateRow(r, mapB.get(index), mapping);
             Cell c = r.createCell(r.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
             c.setCellValue("Nuovo");
-//            mapA.put(index, r);
+            mapA.put(index, r);
         }
         distinct = distinct + mapB.size();
         System.out.println(String.valueOf(common) + " keys are common");
         System.out.println(String.valueOf(distinct) + " keys are distinct");
 
+        save(mapA, folderName + "result.xlsx");
+
+    }
+
+    /**
+     * Saves data in the file
+     * @param mapA
+     * @param s
+     */
+    private static void save(HashMap<String, Row> mapA, String s) {
 
     }
 
@@ -189,6 +199,10 @@ public class Main {
             int sourceCellNum = mapping.get(targetCellNum);
             Cell sourceCell = source.getCell(sourceCellNum);
             Cell targetCell = target.getCell(targetCellNum);
+            if (targetCell == null){
+                targetCell = target.createCell(targetCellNum);
+                targetCell.setCellType(sourceCell.getCellType());
+            }
             updateCell(targetCell, sourceCell);
         }
     }
@@ -241,15 +255,18 @@ public class Main {
     private static void update(Row target, final Row info, final String index, final HashMap<Integer, Integer> mapping) throws Exception {
         for (int pos : mapping.keySet()) {
             Cell targetCell = target.getCell(pos);
-            if(targetCell == null){
-                System.out.println("no cell for pos " + pos);
-            }
             Cell infoCell = info.getCell(mapping.get(pos));
+            if(targetCell == null){
+                targetCell = target.createCell(pos, infoCell.getCellType());
+                System.out.println("created cell for pos " + pos);
+            }
             int targetCellType = targetCell.getCellType();
             int infoCellType = infoCell.getCellType();
 
             if (infoCellType != targetCellType) {
-                throw new Exception("cell type mismatch: " + targetCellType + " vs " + infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
+                System.out.println("cell type mismatch: " + targetCellType + " vs " + infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
+                System.out.println("Imposing type " + infoCellType);
+                targetCell.setCellType(infoCellType);
             }
 
             if (infoCellType == Cell.CELL_TYPE_NUMERIC) {
