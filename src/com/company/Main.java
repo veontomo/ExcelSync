@@ -1,22 +1,16 @@
 package com.company;
 
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.*;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         //Blank workbook
         XSSFWorkbook workbook = new XSSFWorkbook();
 
@@ -107,18 +101,22 @@ public class Main {
 
 
         String folderName = "excel_data\\";
+        // list of files to be merged
         String[] smallFiles = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        // list of strings to be added to each row from the above files before merging
+        String[] marker = new String[]{"SPALM SRL", "KGP", "DIN"};
         String bigFile = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
         XFileReader fr = new XFileReader(folderName + bigFile, 1);
         HashMap<String, Row> mapA = fr.loadFromFile();
         System.out.println("mapA size = " + mapA.size());
 
         HashMap<String, Row> mapB = new HashMap<>();
-        for (String fileName : smallFiles) {
+        for (int i = 0; i < smallFiles.length; i++) {
+            String fileName = smallFiles[i];
             fr = new XFileReader(folderName + fileName, 0);
             HashMap<String, Row> smallMap = fr.loadFromFile();
             smallMap.remove("Dominio");
-            addCellData(smallMap, fileName);
+            addCellData(smallMap, marker[i]);
             try {
                 join(mapB, smallMap);
             } catch (Exception e) {
@@ -136,6 +134,7 @@ public class Main {
         mapping.put(10, 6);
         mapping.put(11, 7);
         mapping.put(12, 8);
+        mapping.put(18, 9);
         mapping.put(22, 1);
         int common = 0, distinct = 0;
 
@@ -144,7 +143,8 @@ public class Main {
         font.setColor(HSSFColor.RED.index);
         style.setFont(font);
 
-
+        int cellsNumA = mapA.get(mapA.keySet().iterator().next()).getPhysicalNumberOfCells();
+        // first pass: iterate ove keys in mapA and remove those keys if they are present in mapB
         for (String index : mapA.keySet()) {
             if (mapB.containsKey(index)) {
                 common++;
@@ -155,11 +155,20 @@ public class Main {
                     e.printStackTrace();
                     System.out.println("failed to update row corresponding to " + index + ", error: " + e.getMessage());
                 }
-                mapB.remove(index);
+//                mapB.remove(index);
             } else {
                 distinct++;
-                mark(mapA.get(index), "Assente", style);
+//                addCell(mapA.get(index), cellsNumA, "Assente", style);
             }
+        }
+
+        // second pass: iterate over remaining keys in mapB
+        for (String index : mapB.keySet()) {
+            Row r = sheet.createRow(cellsNumA + 1);
+            populateRow(r, mapB.get(index), mapping);
+            Cell c = r.createCell(r.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
+            c.setCellValue("Nuovo");
+//            mapA.put(index, r);
         }
         distinct = distinct + mapB.size();
         System.out.println(String.valueOf(common) + " keys are common");
@@ -169,15 +178,55 @@ public class Main {
     }
 
     /**
+     * Populates a target row with the source row using given mapping between their cells
+     *
+     * @param target
+     * @param source
+     * @param mapping
+     */
+    private static void populateRow(Row target, Row source, HashMap<Integer, Integer> mapping) throws Exception {
+        for (int targetCellNum : mapping.keySet()) {
+            int sourceCellNum = mapping.get(targetCellNum);
+            Cell sourceCell = source.getCell(sourceCellNum);
+            Cell targetCell = target.getCell(targetCellNum);
+            updateCell(targetCell, sourceCell);
+        }
+    }
+
+    /**
+     * Updates target cell  with the data from source cell.
+     * @param targetCell
+     * @param sourceCell
+     */
+    private static void updateCell(Cell targetCell, Cell sourceCell) throws Exception {
+        int cellType = sourceCell.getCellType();
+        targetCell.setCellType(cellType);
+        switch (cellType) {
+            case Cell.CELL_TYPE_STRING:
+                targetCell.setCellValue(sourceCell.getStringCellValue());
+                break;
+            case Cell.CELL_TYPE_NUMERIC:
+                targetCell.setCellValue(sourceCell.getNumericCellValue());
+                break;
+            default:
+                throw new Exception("Unsupported cell type: " + cellType);
+        }
+
+    }
+
+
+    /**
      * Adds a cell at the end of the row with given string content and apply given style.
+     *
      * @param row
      * @param marker
      * @param style
      */
-    private static void mark(Row row, String marker, CellStyle style) {
-        Cell c = row.createCell(row.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
+    private static void addCell(Row row, int pos, String marker, CellStyle style) {
+        System.out.println("marking a row");
+        Cell c = row.createCell(pos, Cell.CELL_TYPE_STRING);
         c.setCellValue(marker);
-        c.setCellStyle(style);
+//        c.setCellStyle(style);
 
     }
 
@@ -192,6 +241,9 @@ public class Main {
     private static void update(Row target, final Row info, final String index, final HashMap<Integer, Integer> mapping) throws Exception {
         for (int pos : mapping.keySet()) {
             Cell targetCell = target.getCell(pos);
+            if(targetCell == null){
+                System.out.println("no cell for pos " + pos);
+            }
             Cell infoCell = info.getCell(mapping.get(pos));
             int targetCellType = targetCell.getCellType();
             int infoCellType = infoCell.getCellType();
@@ -212,7 +264,7 @@ public class Main {
                     targetCell.setCellValue(infoCell.getNumericCellValue());
                     break;
                 default:
-                    throw new Exception("Unsupported cell type: "+ infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
+                    throw new Exception("Unsupported cell type: " + infoCellType + " for " + index + ", pos = " + pos + ", mapping: " + mapping.get(pos));
 
 
             }
