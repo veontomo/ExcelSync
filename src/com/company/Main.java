@@ -6,6 +6,8 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.*;
 
 public class Main {
@@ -180,10 +182,68 @@ public class Main {
 
     /**
      * Saves data in the file
+     *
      * @param mapA
      * @param s
      */
     private static void save(HashMap<String, Row> mapA, String s) {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        //Create a blank sheet
+        XSSFSheet sheet = workbook.createSheet("test");
+        int rownum = 0;
+        for (String key : mapA.keySet()) {
+            Row row = sheet.createRow(rownum++);
+
+            try {
+                copy(row, mapA.get(key));
+            } catch (Exception e) {
+                System.out.println("Exception: key " + key + ", rownum " + rownum + ", message: " + e.getMessage());
+//                return;
+            }
+        }
+        try {
+            //Write the workbook in file system
+            FileOutputStream out = new FileOutputStream(new File(s));
+            workbook.write(out);
+            out.close();
+            System.out.println(s + " written successfully on disk.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Copies the source row into target one.
+     *
+     * @param target
+     * @param source
+     */
+    private static void copy(Row target, Row source) throws Exception {
+        Iterator<Cell> iterator = source.iterator();
+        int cellCounter = 0;
+        while (iterator.hasNext()) {
+            Cell sourceCell = iterator.next();
+            int type = sourceCell.getCellType();
+            Cell targetCell = target.createCell(cellCounter, type);
+            switch(type){
+                case Cell.CELL_TYPE_NUMERIC:
+                    targetCell.setCellValue(sourceCell.getNumericCellValue());
+                    break;
+                case Cell.CELL_TYPE_STRING:
+                    targetCell.setCellValue(sourceCell.getStringCellValue());
+                    break;
+                default:
+                    throw new Exception("Unsupported cell type " + type + ", cellCounter " + cellCounter);
+            }
+//            CellStyle newStyle = workbook.createCellStyle();
+//            newStyle.cloneStyleFrom(sourceCell.getCellStyle());
+//            targetCell.setCellStyle(newStyle);
+            cellCounter++;
+
+
+        }
+
 
     }
 
@@ -199,7 +259,7 @@ public class Main {
             int sourceCellNum = mapping.get(targetCellNum);
             Cell sourceCell = source.getCell(sourceCellNum);
             Cell targetCell = target.getCell(targetCellNum);
-            if (targetCell == null){
+            if (targetCell == null) {
                 targetCell = target.createCell(targetCellNum);
                 targetCell.setCellType(sourceCell.getCellType());
             }
@@ -209,6 +269,7 @@ public class Main {
 
     /**
      * Updates target cell  with the data from source cell.
+     *
      * @param targetCell
      * @param sourceCell
      */
@@ -237,7 +298,6 @@ public class Main {
      * @param style
      */
     private static void addCell(Row row, int pos, String marker, CellStyle style) {
-        System.out.println("marking a row");
         Cell c = row.createCell(pos, Cell.CELL_TYPE_STRING);
         c.setCellValue(marker);
 //        c.setCellStyle(style);
@@ -256,7 +316,7 @@ public class Main {
         for (int pos : mapping.keySet()) {
             Cell targetCell = target.getCell(pos);
             Cell infoCell = info.getCell(mapping.get(pos));
-            if(targetCell == null){
+            if (targetCell == null) {
                 targetCell = target.createCell(pos, infoCell.getCellType());
                 System.out.println("created cell for pos " + pos);
             }
