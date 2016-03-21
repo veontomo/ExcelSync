@@ -124,22 +124,46 @@ public class Main {
 
         }
         System.out.println("mapB size = " + mapB.size());
+        int common = 0, distinct = 0;
 
+        for (String index : mapA.keySet()) {
+            if (mapB.containsKey(index)) {
+                common++;
+                mapB.remove(index);
+                // the index is present in both maps
+                update(mapA, mapB.get(index), index);
+            } else {
+                distinct++;
+            }
+        }
+        distinct = distinct + mapB.size();
+        System.out.println(String.valueOf(common) + " keys are common");
+        System.out.println(String.valueOf(distinct) + " keys are distinct");
+    }
 
+    /**
+     * Updates information stored in target under key index with data in given row.
+     * @param target
+     * @param row
+     * @param index
+     */
+    private static void update(HashMap<String, Row> target, Row row, String index) {
 
 
     }
 
+
     /**
      * Joins two hash maps.
      * If there is an index in common, an exception will be thrown.
+     *
      * @param big
      * @param data
      * @return
      */
     private static void join(HashMap<String, Row> big, final HashMap<String, Row> data) throws Exception {
-        for(String index : data.keySet()){
-            if (big.containsKey(index)){
+        for (String index : data.keySet()) {
+            if (big.containsKey(index)) {
                 throw new Exception("key " + index + " is already present!");
             }
             big.put(index, data.get(index));
@@ -148,12 +172,13 @@ public class Main {
 
     /**
      * Modifies a hash map by adding a cell to the end of each row with given string content.
+     *
      * @param hashMap a hash map
-     * @param marker a content of the cell
+     * @param marker  a content of the cell
      * @return the reference
      */
     private static void addCellData(HashMap<String, Row> hashMap, String marker) {
-        for (String item : hashMap.keySet()){
+        for (String item : hashMap.keySet()) {
             Row row = hashMap.get(item);
             Cell cell = row.createCell(row.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
             cell.setCellValue(marker);

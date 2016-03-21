@@ -57,10 +57,10 @@ public class XFileReader {
                 indexCell = row.getCell(indexColNum);
                 switch (indexCell.getCellType()) {
                     case Cell.CELL_TYPE_STRING:
-                        key = indexCell.getStringCellValue();
+                        key = indexCell.getStringCellValue().trim();
                         break;
                     case Cell.CELL_TYPE_NUMERIC:
-                        key = String.valueOf(indexCell.getNumericCellValue());
+                        key = String.valueOf(indexCell.getNumericCellValue()).trim();
                         break;
                     default:
                         throw new Exception("Non supported cell type.");
