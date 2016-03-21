@@ -68,7 +68,7 @@ public class XFileReader {
 //                key = row.getCell(indexColNum).getStringCellValue();
 
                 if (data.containsKey(key)) {
-                    System.out.println("duplicate key: " + key);
+                    throw new Exception("duplicate key: " + key + " in file " + this.filePath);
                 } else {
                     data.put(key, row);
                 }

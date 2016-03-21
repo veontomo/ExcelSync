@@ -104,22 +104,27 @@ public class Main {
 
 
         String folderName = "excel_data\\";
-        String[] fileNames = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
-        HashMap<String, Row> totalMap = new HashMap<>();
-        for (String fileName : fileNames) {
-            XFileReader fr = new XFileReader(folderName + fileName, 0);
+        String[] smallFiles = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        String bigFile = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
+        XFileReader fr = new XFileReader(folderName + bigFile, 1);
+        HashMap<String, Row> mapA = fr.loadFromFile();
+        System.out.println("mapA size = " + mapA.size());
+
+        HashMap<String, Row> mapB = new HashMap<>();
+        for (String fileName : smallFiles) {
+            fr = new XFileReader(folderName + fileName, 0);
             HashMap<String, Row> smallMap = fr.loadFromFile();
             smallMap.remove("Dominio");
-            System.out.println(smallMap.get(smallMap.keySet().iterator().next()).getPhysicalNumberOfCells());
             addCellData(smallMap, fileName);
             try {
-                join(totalMap, smallMap);
+                join(mapB, smallMap);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println(smallMap.get(smallMap.keySet().iterator().next()).getPhysicalNumberOfCells());
-            System.out.println(smallMap.size());
+
         }
+        System.out.println("mapB size = " + mapB.size());
+
 
 
 
