@@ -103,80 +103,98 @@ public class Main {
 
 
         String folderName = "excel_data\\";
-        // list of files to be merged
-        String[] smallFiles = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
-        // list of strings to be added to each row from the above files before merging
+        // the target file and list of the source files
+        String target = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
+        String[] sources = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        // list of strings to identify the sources
         String[] marker = new String[]{"SPALM SRL", "KGP", "DIN"};
-        String bigFile = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
-        XFileReader fr = new XFileReader(folderName + bigFile, 1);
-        HashMap<String, Row> mapA = fr.loadFromFile();
-        System.out.println("mapA size = " + mapA.size());
+        int sourcesLen = sources.length;
+        XFileReader fr = new XFileReader();
+        XSSFWorkbook workbookA = fr.loadFromFile(folderName + target);
+        HashMap<String, Integer> mapA = fr.index(workbookA, 1);
+        System.out.println(mapA.size());
+        XSSFWorkbook[] workbooks = new XSSFWorkbook[sourcesLen];
+        List<HashMap<String, Integer>> maps = new ArrayList<>();
 
-        HashMap<String, Row> mapB = new HashMap<>();
-        for (int i = 0; i < smallFiles.length; i++) {
-            String fileName = smallFiles[i];
-            fr = new XFileReader(folderName + fileName, 0);
-            HashMap<String, Row> smallMap = fr.loadFromFile();
-            smallMap.remove("Dominio");
-            addCellData(smallMap, marker[i]);
-            try {
-                join(mapB, smallMap);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-        System.out.println("mapB size = " + mapB.size());
-
-        final HashMap<Integer, Integer> mapping = new HashMap<>();
-        mapping.put(5, 3);
-        mapping.put(6, 2);
-        mapping.put(7, 2);
-        mapping.put(9, 5);
-        mapping.put(10, 6);
-        mapping.put(11, 7);
-        mapping.put(12, 8);
-        mapping.put(18, 9);
-        mapping.put(22, 1);
-        int common = 0, distinct = 0;
-
-        final CellStyle style = workbook.createCellStyle();
-        final Font font = workbook.createFont();
-        font.setColor(HSSFColor.RED.index);
-        style.setFont(font);
-
-        int cellsNumA = mapA.get(mapA.keySet().iterator().next()).getPhysicalNumberOfCells();
-        // first pass: iterate ove keys in mapA and remove those keys if they are present in mapB
-        for (String index : mapA.keySet()) {
-            if (mapB.containsKey(index)) {
-                common++;
-                // the index is present in both maps
-                try {
-                    update(mapA.get(index), mapB.get(index), index, mapping);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("failed to update row corresponding to " + index + ", error: " + e.getMessage());
-                }
-                mapB.remove(index);
-            } else {
-                distinct++;
-                addCell(mapA.get(index), cellsNumA, "Assente", style);
-            }
+        for (int i = 0; i < sourcesLen; i++) {
+            workbooks[i] = fr.loadFromFile(folderName + sources[i]);
+            maps.add(fr.index(workbooks[i], 0));
         }
 
-        // second pass: iterate over remaining keys in mapB
-        for (String index : mapB.keySet()) {
-            Row r = sheet.createRow(cellsNumA + 1);
-            populateRow(r, mapB.get(index), mapping);
-            Cell c = r.createCell(r.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
-            c.setCellValue("Nuovo");
-            mapA.put(index, r);
-        }
-        distinct = distinct + mapB.size();
-        System.out.println(String.valueOf(common) + " keys are common");
-        System.out.println(String.valueOf(distinct) + " keys are distinct");
 
-        save(mapA, folderName + "result.xlsx");
+
+        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
+        workbookA.write(out);
+
+
+//        HashMap<String, Row> mapA = fr.loadFromFile();
+//        System.out.println("mapA size = " + mapA.size());
+//
+//        HashMap<String, Row> mapB = new HashMap<>();
+//        for (int i = 0; i < smallFiles.length; i++) {
+//            String fileName = smallFiles[i];
+//            fr = new XFileReader(folderName + fileName, 0);
+//            HashMap<String, Row> smallMap = fr.loadFromFile();
+//            smallMap.remove("Dominio");
+//            addCellData(smallMap, marker[i]);
+//            try {
+//                join(mapB, smallMap);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
+//        System.out.println("mapB size = " + mapB.size());
+//
+//        final HashMap<Integer, Integer> mapping = new HashMap<>();
+//        mapping.put(5, 3);
+//        mapping.put(6, 2);
+//        mapping.put(7, 2);
+//        mapping.put(9, 5);
+//        mapping.put(10, 6);
+//        mapping.put(11, 7);
+//        mapping.put(12, 8);
+//        mapping.put(18, 9);
+//        mapping.put(22, 1);
+//        int common = 0, distinct = 0;
+//
+//        final CellStyle style = workbook.createCellStyle();
+//        final Font font = workbook.createFont();
+//        font.setColor(HSSFColor.RED.index);
+//        style.setFont(font);
+//
+//        int cellsNumA = mapA.get(mapA.keySet().iterator().next()).getPhysicalNumberOfCells();
+//        // first pass: iterate ove keys in mapA and remove those keys if they are present in mapB
+//        for (String index : mapA.keySet()) {
+//            if (mapB.containsKey(index)) {
+//                common++;
+//                // the index is present in both maps
+//                try {
+//                    update(mapA.get(index), mapB.get(index), index, mapping);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    System.out.println("failed to update row corresponding to " + index + ", error: " + e.getMessage());
+//                }
+//                mapB.remove(index);
+//            } else {
+//                distinct++;
+//                addCell(mapA.get(index), cellsNumA, "Assente", style);
+//            }
+//        }
+//
+//        // second pass: iterate over remaining keys in mapB
+//        for (String index : mapB.keySet()) {
+//            Row r = sheet.createRow(cellsNumA + 1);
+//            populateRow(r, mapB.get(index), mapping);
+//            Cell c = r.createCell(r.getPhysicalNumberOfCells(), Cell.CELL_TYPE_STRING);
+//            c.setCellValue("Nuovo");
+//            mapA.put(index, r);
+//        }
+//        distinct = distinct + mapB.size();
+//        System.out.println(String.valueOf(common) + " keys are common");
+//        System.out.println(String.valueOf(distinct) + " keys are distinct");
+//
+//        save(mapA, folderName + "result.xlsx");
 
     }
 
@@ -226,7 +244,7 @@ public class Main {
             Cell sourceCell = iterator.next();
             int type = sourceCell.getCellType();
             Cell targetCell = target.createCell(cellCounter, type);
-            switch(type){
+            switch (type) {
                 case Cell.CELL_TYPE_NUMERIC:
                     targetCell.setCellValue(sourceCell.getNumericCellValue());
                     break;

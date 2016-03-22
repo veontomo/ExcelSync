@@ -8,32 +8,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
- * Reads an xls file from disk
+ * Performs operations with excel files.
  */
 public class XFileReader {
-
-    /**
-     * Number of the column in excel file to be used as an index when constructing a hash map.
-     */
-    private int indexColNum = 0;
-
-    /**
-     * Path to an excel file to be read
-     */
-    private String filePath;
-
-    public XFileReader(String filePath, int index) {
-        this.filePath = filePath;
-        this.indexColNum = index;
-    }
-
-
     /**
      * Loads data from a given excel file
-     *
+     * @param filePath a path to the file to read from
      * @return
      */
     public XSSFWorkbook loadFromFile(final String filePath) {
@@ -80,47 +62,6 @@ public class XFileReader {
         return map;
     }
 
-
-    /**
-     * Returns true if the rows have the same content. Otherwise returns false.
-     *
-     * @param r1
-     * @param r2
-     * @return
-     */
-    public boolean areEqual(Row r1, Row r2) {
-        int size1 = r1.getPhysicalNumberOfCells();
-        if (size1 != r2.getPhysicalNumberOfCells()) {
-            return false;
-        }
-        Cell c1, c2;
-        for (int i = 0; i < size1; i++) {
-            c1 = r1.getCell(i);
-            c2 = r2.getCell(i);
-            if (!areEqual(c1, c2)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns true if the cells have the same content. Otherwise returns false.
-     *
-     * @param c1
-     * @param c2
-     * @return
-     */
-    public boolean areEqual(Cell c1, Cell c2) {
-        int t1 = c1.getCellType();
-        int t2 = c2.getCellType();
-        if (t1 != t2) {
-            return false;
-        }
-        /// TODO
-        return false;
-
-    }
 
 
 }
