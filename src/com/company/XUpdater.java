@@ -6,10 +6,12 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -230,6 +232,14 @@ public class XUpdater {
             Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
             targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
             updateRow(targetRow, sourceRow, map);
+
+            Cell cell = targetRow.createCell(targetRow.getLastCellNum() + 1, Cell.CELL_TYPE_STRING);
+            cell.setCellValue("Nuovo");
+            final CellStyle style = target.createCellStyle();
+            final Font font = target.createFont();
+            font.setColor(HSSFColor.GREEN.index);
+            style.setFont(font);
+            cell.setCellStyle(style);
         }
     }
 
@@ -256,8 +266,8 @@ public class XUpdater {
                 continue;
             }
             if (targetCell == null) {
-                targetCell = targetRow.createCell(targetIndex);
-                targetCell.setCellType(sourceCellType);
+                targetCell = targetRow.createCell(targetIndex, sourceCellType);
+
 
             }
 
