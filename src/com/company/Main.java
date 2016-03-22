@@ -113,7 +113,6 @@ public class Main {
         XFileReader fr = new XFileReader();
         XSSFWorkbook workbookA = fr.loadFromFile(folderName + target);
         HashMap<String, Integer> mapA = fr.index(workbookA, 1);
-        System.out.println(mapA.size());
         XSSFWorkbook[] workbooks = new XSSFWorkbook[sourcesLen];
         List<HashMap<String, Integer>> maps = new ArrayList<>();
 
@@ -122,19 +121,18 @@ public class Main {
             maps.add(fr.index(workbooks[i], 0));
         }
 
-        XUpdater updater = new XUpdater();
-        HashMap<String, Integer> duplicates = updater.findDuplicates(mapA, maps);
+        XUpdater updater = new XUpdater(mapA, maps);
+        updater.analyze();
+        HashMap<String, Integer> duplicates = updater.getDuplicates();
+        HashMap<String, Integer> extra = updater.getExtra();
+        List<String> missing = updater.getMissing();
+        System.out.println("duplicates: " + duplicates.size());
+        System.out.println("missing: " + missing.size());
+        System.out.println("extra: " + extra.size());
+
 
         // first pass
-        for (String key : mapA.keySet()) {
-            for (int i = 0; i < sourcesLen; i++) {
-                if (maps.get(i).containsKey(key)) {
-                    System.out.println("key " + key + " is found in set " + i + " -> " + sources[i]);
-                }
-            }
 
-
-        }
 
 //        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
 //        workbookA.write(out);

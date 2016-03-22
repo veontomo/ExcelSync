@@ -27,7 +27,7 @@ public class XFileReader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(workbook.getSheetAt(0).getPhysicalNumberOfRows());
+        System.out.println("Loaded " + workbook.getSheetAt(0).getPhysicalNumberOfRows() + " rows from file " + filePath);
         return workbook;
     }
 
