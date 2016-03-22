@@ -174,6 +174,22 @@ public class XUpdater {
      * Updates the {@link #target} with data stored in the {@link #sources} using the mapping {@link #map} between their columns.
      */
     public void update() {
-//        updateDuplicates();
+        updateDuplicates();
+        updatesMissing();
+        updateExtra();
+    }
+
+    private void updateExtra() {
+        // TODO
+    }
+
+    private void updatesMissing() {
+        // TODO
+
+    }
+
+    private void updateDuplicates() {
+        // TODO
+        
     }
 }
