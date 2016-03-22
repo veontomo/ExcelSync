@@ -112,16 +112,14 @@ public class Main {
         int sourcesLen = sources.length;
         XFileReader fr = new XFileReader();
         XSSFWorkbook workbookA = fr.loadFromFile(folderName + target);
-        HashMap<String, Integer> mapA = fr.index(workbookA, 1);
         XSSFWorkbook[] workbooks = new XSSFWorkbook[sourcesLen];
         List<HashMap<String, Integer>> maps = new ArrayList<>();
 
         for (int i = 0; i < sourcesLen; i++) {
             workbooks[i] = fr.loadFromFile(folderName + sources[i]);
-            maps.add(fr.index(workbooks[i], 0));
-        }
 
-        XUpdater updater = new XUpdater(mapA, maps);
+        }
+        XUpdater updater = new XUpdater(workbookA, workbooks);
         updater.analyze();
         HashMap<String, Integer> duplicates = updater.getDuplicates();
         HashMap<String, Integer> extra = updater.getExtra();
@@ -129,6 +127,8 @@ public class Main {
         System.out.println("duplicates: " + duplicates.size());
         System.out.println("missing: " + missing.size());
         System.out.println("extra: " + extra.size());
+
+//        updater.update()
 
 
         // first pass

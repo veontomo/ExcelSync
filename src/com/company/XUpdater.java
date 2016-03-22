@@ -1,5 +1,10 @@
 package com.company;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,36 +14,38 @@ import java.util.List;
  */
 public class XUpdater {
 
-    private final HashMap<String, Integer> target;
-    private final List<HashMap<String, Integer>> sources;
+    private HashMap<String, Integer> targetIndex;
+    private List<HashMap<String, Integer>> sourcesIndex;
+
+    private final XSSFWorkbook target;
+    private final XSSFWorkbook[] sources;
 
 
     /**
-     * list of keys that are present in both target and sources
+     * list of keys that are present in both targetIndex and sourcesIndex
      */
 
     private HashMap<String, Integer> duplicates;
     /**
-     * list of keys that are present in target and not present in any of the sources
+     * list of keys that are present in targetIndex and not present in any of the sourcesIndex
      */
     private List<String> missing;
 
     /**
-     * list of keys that are present in one of the sources and not present in the target
+     * list of keys that are present in one of the sourcesIndex and not present in the targetIndex
      */
     private HashMap<String, Integer> extra;
 
-
-    public XUpdater(final HashMap<String, Integer> target, final List<HashMap<String, Integer>> sources) {
-        this.target = target;
-        this.sources = sources;
+    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks) {
+        this.target = workbook;
+        this.sources = workbooks;
     }
 
 
     /**
-     * Finds the sources that contain a key from the target.
+     * Finds the sourcesIndex that contain a key from the targetIndex.
      * <p>
-     * If a key is found in multiple sources, an exception is thrown.
+     * If a key is found in multiple sourcesIndex, an exception is thrown.
      * <p>
      * Returns a hash map from a string to an integer that is the ordinal number of the source in the source list in which
      * the key is found.
@@ -49,13 +56,22 @@ public class XUpdater {
         duplicates = new HashMap<>();
         missing = new ArrayList<>();
         extra = new HashMap<>();
+        sourcesIndex = new ArrayList<>();
+
+        targetIndex = index(target, 1);
+        int sourcesLen = sources.length;
+
+        for (int i = 0; i < sourcesLen; i++){
+            sourcesIndex.add(index(sources[i], 0));
+        }
+
+
         boolean isFoundInSources;
-        int sourcesLen = sources.size();
-        // first pass: iterate over the target and control the presence in the sources
-        for (String key : target.keySet()) {
+        // first pass: iterate over the targetIndex and control the presence in the sourcesIndex
+        for (String key : targetIndex.keySet()) {
             isFoundInSources = false;
             for (int i = 0; i < sourcesLen; i++) {
-                if (sources.get(i).containsKey(key)) {
+                if (sourcesIndex.get(i).containsKey(key)) {
                     if (duplicates.containsKey(key)) {
                         throw new Exception("key " + key + " has already been found in source n. " + i + ". Resolve to proceed.");
                     }
@@ -67,12 +83,12 @@ public class XUpdater {
                 missing.add(key);
             }
         }
-        // second pass: iterate over the sources and control if they contain keys that are not in the target
+        // second pass: iterate over the sourcesIndex and control if they contain keys that are not in the targetIndex
         for (int i = 0; i < sourcesLen; i++) {
-            for (String key : sources.get(i).keySet()){
-                if (target.containsKey(key)){
+            for (String key : sourcesIndex.get(i).keySet()) {
+                if (targetIndex.containsKey(key)) {
                     // cross check: the variable "duplicates" must contain this key as well.
-                    if (duplicates.containsKey(key) && duplicates.get(key) == i){
+                    if (duplicates.containsKey(key) && duplicates.get(key) == i) {
 //                        System.out.println("cross-check is OK");
                     } else {
                         System.out.println("cross-check is not OK for key " + key + " that is supposed to be in set " + i);
@@ -95,5 +111,36 @@ public class XUpdater {
 
     public HashMap<String, Integer> getExtra() {
         return extra;
+    }
+
+    /**
+     * Create an index of given workbook: a map from string content of cells of given column to the the number of row
+     * in which that string is found.
+     *
+     * @param workbook
+     * @param column
+     * @return
+     */
+    public HashMap<String, Integer> index(final XSSFWorkbook workbook, final int column) throws Exception {
+        HashMap<String, Integer> map = new HashMap<>();
+        XSSFSheet sheet = workbook.getSheetAt(0);
+
+        int rowsNum = sheet.getPhysicalNumberOfRows();
+        Row row;
+        Cell cell;
+        String key;
+        for (int i = 0; i < rowsNum; i++) {
+            row = sheet.getRow(i);
+            cell = row.getCell(column);
+            if (cell.getCellType() != Cell.CELL_TYPE_STRING) {
+                throw new Exception("Cell " + column + " at row " + i + " is not of string type!");
+            }
+            key = cell.getStringCellValue();
+            if (map.containsKey(key)) {
+                throw new Exception("Duplicate key: " + key);
+            }
+            map.put(key, i);
+        }
+        return map;
     }
 }
