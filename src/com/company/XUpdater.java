@@ -14,11 +14,16 @@ import java.util.List;
  */
 public class XUpdater {
 
+    private final XSSFWorkbook[] sources;
+    private final int sourcesLen;
+    private final XSSFWorkbook target;
+
+    private final int targetIndexCol;
+    private final int sourceIndexCol;
+
     private HashMap<String, Integer> targetIndex;
     private List<HashMap<String, Integer>> sourcesIndex;
 
-    private final XSSFWorkbook target;
-    private final XSSFWorkbook[] sources;
 
 
     /**
@@ -36,9 +41,19 @@ public class XUpdater {
      */
     private HashMap<String, Integer> extra;
 
-    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks) {
+    /**
+     * Constructor.
+     * @param workbook a target workbook
+     * @param workbooks array of source workbooks
+     * @param targetIndexCol a number of the column of the target workbook w.r.t. which an index is to be constructed
+     * @param sourceIndexCol a number of the column of the source workbooks w.r.t. which an index is to be constructed
+     */
+    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks, final int targetIndexCol, final int sourceIndexCol) {
         this.target = workbook;
         this.sources = workbooks;
+        this.sourcesLen = workbooks.length;
+        this.targetIndexCol = targetIndexCol;
+        this.sourceIndexCol = sourceIndexCol;
     }
 
 
@@ -56,15 +71,8 @@ public class XUpdater {
         duplicates = new HashMap<>();
         missing = new ArrayList<>();
         extra = new HashMap<>();
-        sourcesIndex = new ArrayList<>();
 
-        targetIndex = index(target, 1);
-        int sourcesLen = sources.length;
-
-        for (int i = 0; i < sourcesLen; i++){
-            sourcesIndex.add(index(sources[i], 0));
-        }
-
+        initializeIndices();
 
         boolean isFoundInSources;
         // first pass: iterate over the targetIndex and control the presence in the sourcesIndex
@@ -98,6 +106,20 @@ public class XUpdater {
                 }
             }
         }
+
+    }
+
+    /**
+     * Create index for the target workbook and a list of indices for each of the source workbooks.
+     */
+    private void initializeIndices() throws Exception {
+        sourcesIndex = new ArrayList<>();
+        targetIndex = index(target, targetIndexCol);
+        for (int i = 0; i < sourcesLen; i++){
+            sourcesIndex.add(index(sources[i], sourceIndexCol));
+        }
+
+
 
     }
 

@@ -119,7 +119,7 @@ public class Main {
             workbooks[i] = fr.loadFromFile(folderName + sources[i]);
 
         }
-        XUpdater updater = new XUpdater(workbookA, workbooks);
+        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0);
         updater.analyze();
         HashMap<String, Integer> duplicates = updater.getDuplicates();
         HashMap<String, Integer> extra = updater.getExtra();
