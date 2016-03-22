@@ -222,11 +222,15 @@ public class XUpdater {
     }
 
     private void updateExtra() {
-//        for (String key : extra.keySet()){
-//            int sourceNum = extra.get(key);
-//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
-//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceNum);
-//        }
+        for (String key : extra.keySet()) {
+            int sourceNum = extra.get(key);
+            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
+            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
+            int totalRowNum = target.getSheetAt(0).getLastRowNum();
+            Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
+            targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
+            updateRow(targetRow, sourceRow, map);
+        }
     }
 
     /**
@@ -246,14 +250,17 @@ public class XUpdater {
             int sourceCellType = sourceCell.getCellType();
             Cell targetCell = targetRow.getCell(targetIndex);
 
-            if (targetCell == null) {
-                targetCell = targetRow.createCell(targetIndex, sourceCellType);
-            }
-            if (sourceCellType != targetCell.getCellType()) {
+            if (targetCell != null && sourceCellType != targetCell.getCellType()) {
                 System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType()
                         + " for key " + targetRow.getCell(targetIndexCol).getStringCellValue() + ". Skipping it.");
                 continue;
             }
+            if (targetCell == null) {
+                targetCell = targetRow.createCell(targetIndex);
+                targetCell.setCellType(sourceCellType);
+
+            }
+
             switch (sourceCellType) {
                 case Cell.CELL_TYPE_BLANK:
                     System.out.println("source cell is blank");

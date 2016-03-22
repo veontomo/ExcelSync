@@ -121,7 +121,7 @@ public class Main {
         }
         final HashMap<Integer, Integer> mapping = new HashMap<>();
         mapping.put(5, 3);
-        mapping.put(6, 2);
+        mapping.put(6, 4);
         mapping.put(7, 2);
         mapping.put(9, 5);
         mapping.put(10, 6);
