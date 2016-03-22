@@ -73,24 +73,6 @@ public class XFileReader {
                     data.put(key, row);
                 }
 
-                //For each row, iterate through all the columns
-//                Iterator<Cell> cellIterator = row.cellIterator();
-//
-//                while (cellIterator.hasNext())
-//                {
-//                    Cell cell = cellIterator.next();
-//                    //Check the cell type and format accordingly
-//                    switch (cell.getCellType())
-//                    {
-//                        case Cell.CELL_TYPE_NUMERIC:
-//                            System.out.print(cell.getNumericCellValue() + " ");
-//                            break;
-//                        case Cell.CELL_TYPE_STRING:
-//                            System.out.print(cell.getStringCellValue() + " ");
-//                            break;
-//                    }
-//                }
-//                System.out.println("");
             }
             file.close();
         } catch (Exception e) {
@@ -98,6 +80,18 @@ public class XFileReader {
         }
         return data;
     }
+
+    /**
+     * Create an index of given workbook: a map from string content of cells of given column to the the number of row
+     * in which that string is found.
+     * @param workbook
+     * @param column
+     * @return
+     */
+    public  HashMap<String, Integer> index(XSSFWorkbook workbook, int column){
+       return null;
+    }
+
 
     /**
      * Returns true if the rows have the same content. Otherwise returns false.
