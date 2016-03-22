@@ -84,12 +84,32 @@ public class XFileReader {
     /**
      * Create an index of given workbook: a map from string content of cells of given column to the the number of row
      * in which that string is found.
+     *
      * @param workbook
      * @param column
      * @return
      */
-    public  HashMap<String, Integer> index(XSSFWorkbook workbook, int column){
-       return null;
+    public HashMap<String, Integer> index(final XSSFWorkbook workbook, final int column) throws Exception {
+        HashMap<String, Integer> map = new HashMap<>();
+        XSSFSheet sheet = workbook.getSheetAt(0);
+
+        int rowsNum = sheet.getPhysicalNumberOfRows();
+        Row row;
+        Cell cell;
+        String key;
+        for (int i = 0; i < rowsNum; i++) {
+            row = sheet.getRow(i);
+            cell = row.getCell(column);
+            if (cell.getCellType() != Cell.CELL_TYPE_STRING) {
+                throw new Exception("Cell " + column + " at row " + i + " is not of string type!");
+            }
+            key = cell.getStringCellValue();
+            if (map.containsKey(key)) {
+                throw new Exception("Duplicate key: " + key);
+            }
+            map.put(key, i);
+        }
+        return map;
     }
 
 
