@@ -179,8 +179,17 @@ public class XUpdater {
         updateExtra();
     }
 
-    private void updateExtra() {
-        // TODO
+
+    private void updateDuplicates() {
+        for (String key : duplicates.keySet()) {
+            int targetRowNum = targetIndex.get(key);
+            Row targetRow = target.getSheetAt(0).getRow(targetRowNum);
+            int sourceNum = duplicates.get(key);
+            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
+            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
+            updateRow(targetRow, sourceRow, map);
+        }
+
     }
 
     private void updatesMissing() {
@@ -188,8 +197,52 @@ public class XUpdater {
 
     }
 
-    private void updateDuplicates() {
+    private void updateExtra() {
         // TODO
-        
     }
+
+    /**
+     * Updates targetRow with information from the sourceRow using given map as a correspondence between the row cells.
+     *
+     * @param targetRow
+     * @param sourceRow
+     */
+    private void updateRow(final Row targetRow, final Row sourceRow, final HashMap<Integer, Integer> map) {
+        for (int targetIndex : map.keySet()) {
+            int sourceIndex = map.get(targetIndex);
+            Cell sourceCell = sourceRow.getCell(sourceIndex);
+            if (sourceCell == null) {
+                System.out.println("source column " + sourceIndex + " is not present. Skipping it.");
+                continue;
+            }
+            int sourceCellType = sourceCell.getCellType();
+            Cell targetCell = targetRow.getCell(targetIndex);
+
+            if (targetCell == null) {
+                targetCell = targetRow.createCell(targetIndex, sourceCellType);
+            }
+            if (sourceCellType != targetCell.getCellType()) {
+                System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType() + ". Skipping it.");
+                continue;
+            }
+            switch (sourceCellType){
+                case Cell.CELL_TYPE_BLANK:
+                    System.out.println("source cell is blank");
+                    break;
+                case Cell.CELL_TYPE_BOOLEAN:
+                    targetCell.setCellValue(sourceCell.getBooleanCellValue());
+                    break;
+                case Cell.CELL_TYPE_NUMERIC:
+                    targetCell.setCellValue(sourceCell.getNumericCellValue());
+                    break;
+                case Cell.CELL_TYPE_STRING:
+                    targetCell.setCellValue(sourceCell.getStringCellValue());
+                    break;
+                default:
+                    System.out.println("Cell type " + sourceCellType + " is not supported. Skipping the update of this cell.");
+            }
+        }
+
+    }
+
 }
