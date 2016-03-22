@@ -187,7 +187,14 @@ public class XUpdater {
             int sourceNum = duplicates.get(key);
             int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
             Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
-            updateRow(targetRow, sourceRow, map);
+            String targetKey = targetRow.getCell(targetIndexCol).getStringCellValue();
+            String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
+            // cross-check control
+            if (key.equals(sourceKey) && key.equals(targetKey)) {
+                updateRow(targetRow, sourceRow, map);
+            } else {
+                System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
+            }
         }
 
     }
@@ -225,7 +232,7 @@ public class XUpdater {
                 System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType() + ". Skipping it.");
                 continue;
             }
-            switch (sourceCellType){
+            switch (sourceCellType) {
                 case Cell.CELL_TYPE_BLANK:
                     System.out.println("source cell is blank");
                     break;
