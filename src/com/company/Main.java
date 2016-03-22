@@ -1,5 +1,6 @@
 package com.company;
 
+import com.oracle.deploy.update.Updater;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -121,10 +122,22 @@ public class Main {
             maps.add(fr.index(workbooks[i], 0));
         }
 
+        XUpdater updater = new XUpdater();
+        HashMap<String, Integer> duplicates = updater.findDuplicates(mapA, maps);
+
+        // first pass
+        for (String key : mapA.keySet()) {
+            for (int i = 0; i < sourcesLen; i++) {
+                if (maps.get(i).containsKey(key)) {
+                    System.out.println("key " + key + " is found in set " + i + " -> " + sources[i]);
+                }
+            }
 
 
-        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
-        workbookA.write(out);
+        }
+
+//        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
+//        workbookA.write(out);
 
 
 //        HashMap<String, Row> mapA = fr.loadFromFile();
