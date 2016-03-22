@@ -209,7 +209,8 @@ public class XUpdater {
         for (String key : missing) {
             int rowNum = targetIndex.get(key);
             Row row = target.getSheetAt(0).getRow(rowNum);
-            Cell cell = row.createCell(row.getPhysicalNumberOfCells() + 1, Cell.CELL_TYPE_STRING);
+
+            Cell cell = row.createCell(row.getLastCellNum() + 1, Cell.CELL_TYPE_STRING);
             cell.setCellValue("Assente");
             final CellStyle style = target.createCellStyle();
             final Font font = target.createFont();
@@ -221,7 +222,11 @@ public class XUpdater {
     }
 
     private void updateExtra() {
-        // TODO
+//        for (String key : extra.keySet()){
+//            int sourceNum = extra.get(key);
+//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
+//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceNum);
+//        }
     }
 
     /**
