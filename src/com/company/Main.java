@@ -106,7 +106,7 @@ public class Main {
         String folderName = "excel_data\\";
         // the target file and list of the source files
         String target = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
-        String[] sources = new String[]{"Spalm Srl.xlsx", "KGP.xlsx", "Din.xlsx"};
+        String[] sources = new String[]{"Spalm_Srl_with_filename.xlsx", "KGP_with_filename.xlsx", "Din_with_filename.xlsx"};
         // list of strings to identify the sources
         String[] marker = new String[]{"SPALM SRL", "KGP", "DIN"};
         int sourcesLen = sources.length;
@@ -127,6 +127,7 @@ public class Main {
         mapping.put(10, 6);
         mapping.put(11, 7);
         mapping.put(12, 8);
+        mapping.put(18, 9);
         mapping.put(22, 1);
 
         XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, mapping);

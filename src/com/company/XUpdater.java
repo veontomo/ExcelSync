@@ -229,7 +229,8 @@ public class XUpdater {
                 targetCell = targetRow.createCell(targetIndex, sourceCellType);
             }
             if (sourceCellType != targetCell.getCellType()) {
-                System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType() + ". Skipping it.");
+                System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType()
+                        + " for key " + targetRow.getCell(targetIndexCol).getStringCellValue() + ". Skipping it.");
                 continue;
             }
             switch (sourceCellType) {
