@@ -145,8 +145,8 @@ public class Main {
         // first pass
 
 
-//        FileOutputStream out = new FileOutputStream(new File("test.xlsx"));
-//        workbookA.write(out);
+        FileOutputStream out = new FileOutputStream(new File(folderName + "test.xlsx"));
+        workbookA.write(out);
 
 
 //        HashMap<String, Row> mapA = fr.loadFromFile();

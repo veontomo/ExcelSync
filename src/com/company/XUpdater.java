@@ -1,7 +1,10 @@
 package com.company;
 
 import com.sun.istack.internal.NotNull;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -199,8 +202,21 @@ public class XUpdater {
 
     }
 
+    /**
+     * Adds a string cell at the end of the row which key is not present in any of the source files.
+     */
     private void updatesMissing() {
-        // TODO
+        for (String key : missing) {
+            int rowNum = targetIndex.get(key);
+            Row row = target.getSheetAt(0).getRow(rowNum);
+            Cell cell = row.createCell(row.getPhysicalNumberOfCells() + 1, Cell.CELL_TYPE_STRING);
+            cell.setCellValue("Assente");
+            final CellStyle style = target.createCellStyle();
+            final Font font = target.createFont();
+            font.setColor(HSSFColor.RED.index);
+            style.setFont(font);
+            cell.setCellStyle(style);
+        }
 
     }
 
