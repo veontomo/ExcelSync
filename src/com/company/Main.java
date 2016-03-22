@@ -119,7 +119,7 @@ public class Main {
             workbooks[i] = fr.loadFromFile(folderName + sources[i]);
 
         }
-        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0);
+        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, null);
         updater.analyze();
         HashMap<String, Integer> duplicates = updater.getDuplicates();
         HashMap<String, Integer> extra = updater.getExtra();
@@ -128,7 +128,7 @@ public class Main {
         System.out.println("missing: " + missing.size());
         System.out.println("extra: " + extra.size());
 
-//        updater.update()
+        updater.update();
 
 
         // first pass

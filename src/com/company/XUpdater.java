@@ -1,5 +1,6 @@
 package com.company;
 
+import com.sun.istack.internal.NotNull;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -17,13 +18,13 @@ public class XUpdater {
     private final XSSFWorkbook[] sources;
     private final int sourcesLen;
     private final XSSFWorkbook target;
+    private final HashMap<Integer, Integer> map;
 
     private final int targetIndexCol;
     private final int sourceIndexCol;
 
     private HashMap<String, Integer> targetIndex;
     private List<HashMap<String, Integer>> sourcesIndex;
-
 
 
     /**
@@ -43,17 +44,21 @@ public class XUpdater {
 
     /**
      * Constructor.
-     * @param workbook a target workbook
-     * @param workbooks array of source workbooks
+     *
+     * @param workbook       a target workbook
+     * @param workbooks      array of source workbooks
      * @param targetIndexCol a number of the column of the target workbook w.r.t. which an index is to be constructed
      * @param sourceIndexCol a number of the column of the source workbooks w.r.t. which an index is to be constructed
+     * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
-    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks, final int targetIndexCol, final int sourceIndexCol) {
+    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
+                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map) {
         this.target = workbook;
         this.sources = workbooks;
         this.sourcesLen = workbooks.length;
         this.targetIndexCol = targetIndexCol;
         this.sourceIndexCol = sourceIndexCol;
+        this.map = map;
     }
 
 
@@ -115,10 +120,9 @@ public class XUpdater {
     private void initializeIndices() throws Exception {
         sourcesIndex = new ArrayList<>();
         targetIndex = index(target, targetIndexCol);
-        for (int i = 0; i < sourcesLen; i++){
+        for (int i = 0; i < sourcesLen; i++) {
             sourcesIndex.add(index(sources[i], sourceIndexCol));
         }
-
 
 
     }
@@ -164,5 +168,12 @@ public class XUpdater {
             map.put(key, i);
         }
         return map;
+    }
+
+    /**
+     * Updates the {@link #target} with data stored in the {@link #sources} using the mapping {@link #map} between their columns.
+     */
+    public void update() {
+//        updateDuplicates();
     }
 }
