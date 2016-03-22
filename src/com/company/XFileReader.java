@@ -36,49 +36,17 @@ public class XFileReader {
      *
      * @return
      */
-    public HashMap<String, Row> loadFromFile() {
-        HashMap<String, Row> data = new HashMap<>();
+    public XSSFWorkbook loadFromFile(final String filePath) {
+        XSSFWorkbook workbook = null;
         try {
             FileInputStream file = new FileInputStream(new File(filePath));
-
-            //Create Workbook instance holding reference to .xlsx file
-            XSSFWorkbook workbook = new XSSFWorkbook(file);
-
-            //Get first/desired sheet from the workbook
-            XSSFSheet sheet = workbook.getSheetAt(0);
-
-            //Iterate through each rows one by one
-            Iterator<Row> rowIterator = sheet.iterator();
-            String key;
-            Row row;
-            Cell indexCell;
-            while (rowIterator.hasNext()) {
-                row = rowIterator.next();
-                indexCell = row.getCell(indexColNum);
-                switch (indexCell.getCellType()) {
-                    case Cell.CELL_TYPE_STRING:
-                        key = indexCell.getStringCellValue().trim();
-                        break;
-                    case Cell.CELL_TYPE_NUMERIC:
-                        key = String.valueOf(indexCell.getNumericCellValue()).trim();
-                        break;
-                    default:
-                        throw new Exception("Non supported cell type.");
-                }
-//                key = row.getCell(indexColNum).getStringCellValue();
-
-                if (data.containsKey(key)) {
-                    throw new Exception("duplicate key: " + key + " in file " + this.filePath);
-                } else {
-                    data.put(key, row);
-                }
-
-            }
+            workbook = new XSSFWorkbook(file);
             file.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return data;
+        System.out.println(workbook.getSheetAt(0).getPhysicalNumberOfRows());
+        return workbook;
     }
 
     /**
