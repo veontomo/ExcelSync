@@ -25,6 +25,7 @@ public class XUpdater {
 
     private final int targetIndexCol;
     private final int sourceIndexCol;
+    private final List<String> blacklist;
 
     private HashMap<String, Integer> targetIndex;
     private List<HashMap<String, Integer>> sourcesIndex;
@@ -74,13 +75,14 @@ public class XUpdater {
      */
     public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
                     final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map,
-                    final String[] markers) {
+                    final String[] markers, final List<String> blacklist) {
         this.target = workbook;
         this.sources = workbooks;
         this.sourcesLen = workbooks.length;
         this.targetIndexCol = targetIndexCol;
         this.sourceIndexCol = sourceIndexCol;
         this.map = map;
+        this.blacklist = blacklist;
 
         this.styleForMissing = target.createCellStyle();
         final Font font = target.createFont();
@@ -208,11 +210,12 @@ public class XUpdater {
                 throw new Exception("Cell " + column + " at row " + i + " is not of string type!");
             }
             key = cell.getStringCellValue();
+            if (blacklist.contains(key)){
+                System.out.println("Key \"" + key + "\" is listed in the blacklist and hence is not added to the index.");
+                continue;
+            }
             if (map.containsKey(key)) {
                 throw new Exception("Duplicate key: " + key);
-            }
-            if ("Dominio".equals(key)) {
-                System.out.println("Dominio is found");
             }
             map.put(key, i);
         }

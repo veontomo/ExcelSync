@@ -129,7 +129,10 @@ public class Main {
         mapping.put(22, 1);
 
         final String[] markers = new String[]{"Aggiornato", "Nuovo", "Assente"};
-        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, mapping, markers);
+        final List<String> blacklist = new ArrayList<>();
+        blacklist.add("Dominio");
+        blacklist.add("Descrizione Sito");
+        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, mapping, markers, blacklist);
         updater.analyze();
         HashMap<String, Integer> duplicates = updater.getDuplicates();
         HashMap<String, Integer> extra = updater.getExtra();
