@@ -6,12 +6,10 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -46,9 +44,21 @@ public class XUpdater {
      * list of keys that are present in one of the sourcesIndex and not present in the targetIndex
      */
     private HashMap<String, Integer> extra;
+
+    /**
+     * Style to be applied to a cell that is to be appended to the rows present in {@link #missing}
+     */
     private final CellStyle styleForMissing;
-    private final CellStyle styleForExisting;
-    private final CellStyle styleForNew;
+
+    /**
+     * Style to be applied to a cell that is to be appended to the rows present in {@link #duplicates}
+     */
+    private final CellStyle styleForDuplicates;
+
+    /**
+     * Style to be applied to a cell that is to be appended to the rows present in {@link #extra}
+     */
+    private final CellStyle styleForExtra;
 
     /**
      * Constructor.
@@ -74,15 +84,15 @@ public class XUpdater {
         font.setColor(HSSFColor.RED.index);
         styleForMissing.setFont(font);
 
-        this.styleForExisting = target.createCellStyle();
+        this.styleForDuplicates = target.createCellStyle();
         final Font font2 = target.createFont();
         font2.setColor(HSSFColor.BLUE.index);
-        styleForExisting.setFont(font2);
+        styleForDuplicates.setFont(font2);
 
-        this.styleForNew = target.createCellStyle();
+        this.styleForExtra = target.createCellStyle();
         final Font font3 = target.createFont();
         font3.setColor(HSSFColor.GREEN.index);
-        styleForNew.setFont(font3);
+        styleForExtra.setFont(font3);
 
 
     }
@@ -217,7 +227,7 @@ public class XUpdater {
             String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
             // cross-check control
             if (key.equals(sourceKey) && key.equals(targetKey)) {
-                updateRow(targetRow, sourceRow, map, "Aggiornato", styleForExisting);
+                updateRow(targetRow, sourceRow, map, "Aggiornato", styleForDuplicates);
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
@@ -246,7 +256,7 @@ public class XUpdater {
             int totalRowNum = target.getSheetAt(0).getLastRowNum();
             Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
             targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-            updateRow(targetRow, sourceRow, map, "Nuovo", styleForNew);
+            updateRow(targetRow, sourceRow, map, "Nuovo", styleForExtra);
 
         }
     }
