@@ -46,6 +46,9 @@ public class XUpdater {
      * list of keys that are present in one of the sourcesIndex and not present in the targetIndex
      */
     private HashMap<String, Integer> extra;
+    private final CellStyle styleForMissing;
+    private final CellStyle styleForExisting;
+    private final CellStyle styleForNew;
 
     /**
      * Constructor.
@@ -57,13 +60,31 @@ public class XUpdater {
      * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
     public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
-                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map) {
+                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map
+    ) {
         this.target = workbook;
         this.sources = workbooks;
         this.sourcesLen = workbooks.length;
         this.targetIndexCol = targetIndexCol;
         this.sourceIndexCol = sourceIndexCol;
         this.map = map;
+
+        this.styleForMissing = target.createCellStyle();
+        final Font font = target.createFont();
+        font.setColor(HSSFColor.RED.index);
+        styleForMissing.setFont(font);
+
+        this.styleForExisting = target.createCellStyle();
+        final Font font2 = target.createFont();
+        font2.setColor(HSSFColor.BLUE.index);
+        styleForExisting.setFont(font2);
+
+        this.styleForNew = target.createCellStyle();
+        final Font font3 = target.createFont();
+        font3.setColor(HSSFColor.GREEN.index);
+        styleForNew.setFont(font3);
+
+
     }
 
 
@@ -196,11 +217,7 @@ public class XUpdater {
             String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
             // cross-check control
             if (key.equals(sourceKey) && key.equals(targetKey)) {
-                final CellStyle style = target.createCellStyle();
-                final Font font = target.createFont();
-                font.setColor(HSSFColor.BLUE.index);
-                style.setFont(font);
-                updateRow(targetRow, sourceRow, map, "Aggiornato", style);
+                updateRow(targetRow, sourceRow, map, "Aggiornato", styleForExisting);
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
@@ -212,17 +229,11 @@ public class XUpdater {
      * Adds a string cell at the end of the row which key is not present in any of the source files.
      */
     private void updatesMissing() {
+        HashMap<Integer, Integer> map = new HashMap<>();
         for (String key : missing) {
             int rowNum = targetIndex.get(key);
             Row row = target.getSheetAt(0).getRow(rowNum);
-
-            Cell cell = row.createCell(row.getLastCellNum() + 1, Cell.CELL_TYPE_STRING);
-            cell.setCellValue("Assente");
-            final CellStyle style = target.createCellStyle();
-            final Font font = target.createFont();
-            font.setColor(HSSFColor.RED.index);
-            style.setFont(font);
-            cell.setCellStyle(style);
+            updateRow(row, null, map, "Assente", styleForMissing);
         }
 
     }
@@ -235,14 +246,7 @@ public class XUpdater {
             int totalRowNum = target.getSheetAt(0).getLastRowNum();
             Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
             targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-
-
-            final CellStyle style = target.createCellStyle();
-            final Font font = target.createFont();
-            font.setColor(HSSFColor.GREEN.index);
-            style.setFont(font);
-
-            updateRow(targetRow, sourceRow, map, "Nuovo", style);
+            updateRow(targetRow, sourceRow, map, "Nuovo", styleForNew);
 
         }
     }
