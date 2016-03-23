@@ -59,6 +59,9 @@ public class XUpdater {
      * Style to be applied to a cell that is to be appended to the rows present in {@link #extra}
      */
     private final CellStyle styleForExtra;
+    private final String markerForDuplicates;
+    private final String markerForExtra;
+    private final String markerForMissing;
 
     /**
      * Constructor.
@@ -70,8 +73,8 @@ public class XUpdater {
      * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
     public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
-                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map
-    ) {
+                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map,
+                    final String[] markers) {
         this.target = workbook;
         this.sources = workbooks;
         this.sourcesLen = workbooks.length;
@@ -94,6 +97,9 @@ public class XUpdater {
         font3.setColor(HSSFColor.GREEN.index);
         styleForExtra.setFont(font3);
 
+        this.markerForDuplicates = markers[0];
+        this.markerForExtra = markers[1];
+        this.markerForMissing = markers[2];
 
     }
 
@@ -143,7 +149,11 @@ public class XUpdater {
                         System.out.println("cross-check is not OK for key " + key + " that is supposed to be in set " + i);
                     }
                 } else {
-                    extra.put(key, i);
+                    if (extra.containsKey(key)) {
+                        System.out.println("key " + key + " is found in source n. " + i + " (zero-based), while it has already been added to the extra index.");
+                    } else {
+                        extra.put(key, i);
+                    }
                 }
             }
         }
@@ -201,6 +211,9 @@ public class XUpdater {
             if (map.containsKey(key)) {
                 throw new Exception("Duplicate key: " + key);
             }
+            if ("Dominio".equals(key)) {
+                System.out.println("Dominio is found");
+            }
             map.put(key, i);
         }
         return map;
@@ -227,7 +240,7 @@ public class XUpdater {
             String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
             // cross-check control
             if (key.equals(sourceKey) && key.equals(targetKey)) {
-                updateRow(targetRow, sourceRow, map, "Aggiornato", styleForDuplicates);
+                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
@@ -243,7 +256,7 @@ public class XUpdater {
         for (String key : missing) {
             int rowNum = targetIndex.get(key);
             Row row = target.getSheetAt(0).getRow(rowNum);
-            updateRow(row, null, map, "Assente", styleForMissing);
+            updateRow(row, null, map, markerForMissing, styleForMissing);
         }
 
     }
@@ -256,7 +269,7 @@ public class XUpdater {
             int totalRowNum = target.getSheetAt(0).getLastRowNum();
             Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
             targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-            updateRow(targetRow, sourceRow, map, "Nuovo", styleForExtra);
+            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
 
         }
     }

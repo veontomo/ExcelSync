@@ -107,13 +107,11 @@ public class Main {
         // the target file and list of the source files
         String target = "A008 H lavoro Riparti da Qui NON Tagliato.xlsx";
         String[] sources = new String[]{"Spalm_Srl_with_filename.xlsx", "KGP_with_filename.xlsx", "Din_with_filename.xlsx"};
-        // list of strings to identify the sources
-        String[] marker = new String[]{"SPALM SRL", "KGP", "DIN"};
+
         int sourcesLen = sources.length;
         XFileReader fr = new XFileReader();
         XSSFWorkbook workbookA = fr.loadFromFile(folderName + target);
         XSSFWorkbook[] workbooks = new XSSFWorkbook[sourcesLen];
-        List<HashMap<String, Integer>> maps = new ArrayList<>();
 
         for (int i = 0; i < sourcesLen; i++) {
             workbooks[i] = fr.loadFromFile(folderName + sources[i]);
@@ -130,7 +128,8 @@ public class Main {
         mapping.put(18, 9);
         mapping.put(22, 1);
 
-        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, mapping);
+        final String[] markers = new String[]{"Aggiornato", "Nuovo", "Assente"};
+        XUpdater updater = new XUpdater(workbookA, workbooks, 1, 0, mapping, markers);
         updater.analyze();
         HashMap<String, Integer> duplicates = updater.getDuplicates();
         HashMap<String, Integer> extra = updater.getExtra();
