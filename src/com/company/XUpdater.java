@@ -197,6 +197,13 @@ public class XUpdater {
             // cross-check control
             if (key.equals(sourceKey) && key.equals(targetKey)) {
                 updateRow(targetRow, sourceRow, map);
+                Cell cell = targetRow.createCell(targetRow.getLastCellNum() + 1, Cell.CELL_TYPE_STRING);
+                cell.setCellValue("Aggiornato");
+                final CellStyle style = target.createCellStyle();
+                final Font font = target.createFont();
+                font.setColor(HSSFColor.BLUE.index);
+                style.setFont(font);
+                cell.setCellStyle(style);
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
@@ -248,6 +255,7 @@ public class XUpdater {
      *
      * @param targetRow
      * @param sourceRow
+     * @param map
      */
     private void updateRow(final Row targetRow, final Row sourceRow, final HashMap<Integer, Integer> map) {
         for (int targetIndex : map.keySet()) {
@@ -287,6 +295,7 @@ public class XUpdater {
                 default:
                     System.out.println("Cell type " + sourceCellType + " is not supported. Skipping the update of this cell.");
             }
+
         }
 
     }
