@@ -11,6 +11,7 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+//        dbRead("siti_local", "sito_import_davide2");
 
         String folderName = "excel_data\\";
         // the target file and list of the source files
