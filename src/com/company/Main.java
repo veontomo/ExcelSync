@@ -5,6 +5,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.sql.*;
 import java.util.*;
 
 public class Main {
@@ -65,5 +66,29 @@ public class Main {
 
         FileOutputStream out = new FileOutputStream(new File(folderName + "updated.xlsx"));
         workbookA.write(out);
+    }
+
+    public static void dbRead(final String dbName, final String tblName) {
+        Properties connectionProps = new Properties();
+        connectionProps.put("user", "siti_local");
+        connectionProps.put("password", "siti_local_read");
+        final String pattern = "[^\\p{Alnum}_]";
+        String dbName2 = dbName.replaceAll(pattern, "");
+        String tblName2 = tblName.replaceAll(pattern, "");
+        try {
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dbName2, connectionProps);
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM " + tblName2 + ";");
+            System.out.print(result.getFetchSize());
+            while (result.next()){
+                System.out.println(result.getString(2));
+            }
+
+
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 }
