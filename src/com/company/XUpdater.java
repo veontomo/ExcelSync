@@ -12,6 +12,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Updates a workbook with data from other workbooks
@@ -74,7 +75,7 @@ public class XUpdater {
      * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
     public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
-                    final int targetIndexCol, final int sourceIndexCol, @NotNull final HashMap<Integer, Integer> map,
+                    final int targetIndexCol, final int sourceIndexCol, @NotNull final Map<Integer, Integer> map,
                     final String[] markers, final List<String> blacklist) {
         this.target = workbook;
         this.sources = workbooks;

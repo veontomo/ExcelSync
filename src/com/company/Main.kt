@@ -11,35 +11,31 @@ import java.util.*
 
 fun main(args: Array<String>) {
 
+    if (args.size < 2){
+        println("At leas three arguments are expected.")
+    }
+
     val folderName = args[0]
     // the target file and list of the source files
     val target = folderName + args[1]
-
     val sources = Arrays.copyOfRange(args, 2, args.size).map{ it -> folderName + it}
-    //        new String[]{"Spalm_Srl_with_filename.xlsx", "KGP_with_filename.xlsx", "Din_with_filename.xlsx"};
 
+
+    println("target file: $target")
+    println("source files: ${sources.joinToString { it }}")
     val sourcesLen = sources.size
     val fr = XFileReader()
-    val workbookA = fr.loadFromFile(folderName + target)
+    val workbookA = fr.loadFromFile(target)
     val workbooks = arrayOfNulls<XSSFWorkbook>(sourcesLen)
 
     for (i in 0..sourcesLen - 1) {
-        workbooks[i] = fr.loadFromFile(folderName + sources[i])
+        workbooks[i] = fr.loadFromFile(sources[i])
 
     }
     // correspondence between columns of the target workbook and the source workbooks.
-    val mapping = HashMap<Int, Int>()
-    mapping.put(5, 3)
-    mapping.put(6, 4)
-    mapping.put(7, 2)
-    mapping.put(9, 5)
-    mapping.put(10, 6)
-    mapping.put(11, 7)
-    mapping.put(12, 8)
-    mapping.put(18, 9)
-    mapping.put(22, 1)
+    val mapping = mapOf(2 to 1, 6 to 4, 7 to 4, 8 to 3, 9 to 6, 10 to 7, 11 to 8, 12 to 9, 13 to 19, 16 to 5)
 
-    // Strings to be added at the and of the updated rows
+    // Strings to be added at the end of the updated rows
     val markers = arrayOf("Aggiornato", "Nuovo", "Assente")
     // List of strings to be ignored when creating the index of each workbook
     val blacklist = ArrayList<String>()
