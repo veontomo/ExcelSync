@@ -19,10 +19,10 @@ import java.util.Map;
  */
 public class XUpdater {
 
-    private final XSSFWorkbook[] sources;
+    private final Map<String, XSSFWorkbook> sources;
     private final int sourcesLen;
     private final XSSFWorkbook target;
-    private final HashMap<Integer, Integer> map;
+    private final Map<Integer, Integer> map;
 
     private final int targetIndexCol;
     private final int sourceIndexCol;
@@ -74,12 +74,12 @@ public class XUpdater {
      * @param sourceIndexCol a number of the column of the source workbooks w.r.t. which an index is to be constructed
      * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
-    public XUpdater(final XSSFWorkbook workbook, final XSSFWorkbook[] workbooks,
+    public XUpdater(final XSSFWorkbook workbook, final Map<String, XSSFWorkbook> workbooks,
                     final int targetIndexCol, final int sourceIndexCol, @NotNull final Map<Integer, Integer> map,
                     final String[] markers, final List<String> blacklist) {
         this.target = workbook;
         this.sources = workbooks;
-        this.sourcesLen = workbooks.length;
+        this.sourcesLen = workbooks.size();
         this.targetIndexCol = targetIndexCol;
         this.sourceIndexCol = sourceIndexCol;
         this.map = map;
@@ -170,7 +170,7 @@ public class XUpdater {
         sourcesIndex = new ArrayList<>();
         targetIndex = index(target, targetIndexCol);
         for (int i = 0; i < sourcesLen; i++) {
-            sourcesIndex.add(index(sources[i], sourceIndexCol));
+//            sourcesIndex.add(index(sources[i], sourceIndexCol));
         }
 
 
@@ -189,7 +189,7 @@ public class XUpdater {
     }
 
     /**
-     * Create an index of given workbook: a map from string content of cells of given column to the the number of row
+     * Create an index of given workbook: a map from string content of cells of given column to the number of row
      * in which that string is found.
      *
      * @param workbook
@@ -211,7 +211,7 @@ public class XUpdater {
                 throw new Exception("Cell " + column + " at row " + i + " is not of string type!");
             }
             key = cell.getStringCellValue();
-            if (blacklist.contains(key)){
+            if (blacklist.contains(key)) {
                 System.out.println("Key \"" + key + "\" is listed in the blacklist and hence is not added to the index.");
                 continue;
             }
@@ -234,21 +234,21 @@ public class XUpdater {
 
 
     private void updateDuplicates() {
-        for (String key : duplicates.keySet()) {
-            int targetRowNum = targetIndex.get(key);
-            Row targetRow = target.getSheetAt(0).getRow(targetRowNum);
-            int sourceNum = duplicates.get(key);
-            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
-            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
-            String targetKey = targetRow.getCell(targetIndexCol).getStringCellValue();
-            String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
-            // cross-check control
-            if (key.equals(sourceKey) && key.equals(targetKey)) {
-                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
-            } else {
-                System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
-            }
-        }
+//        for (String key : duplicates.keySet()) {
+//            int targetRowNum = targetIndex.get(key);
+//            Row targetRow = target.getSheetAt(0).getRow(targetRowNum);
+//            int sourceNum = duplicates.get(key);
+//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
+//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
+//            String targetKey = targetRow.getCell(targetIndexCol).getStringCellValue();
+//            String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
+//             cross-check control
+//            if (key.equals(sourceKey) && key.equals(targetKey)) {
+//                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
+//            } else {
+//                System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
+//            }
+//        }
 
     }
 
@@ -266,16 +266,16 @@ public class XUpdater {
     }
 
     private void updateExtra() {
-        for (String key : extra.keySet()) {
-            int sourceNum = extra.get(key);
-            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
-            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
-            int totalRowNum = target.getSheetAt(0).getLastRowNum();
-            Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
-            targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
-
-        }
+//        for (String key : extra.keySet()) {
+//            int sourceNum = extra.get(key);
+//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
+//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
+//            int totalRowNum = target.getSheetAt(0).getLastRowNum();
+//            Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
+//            targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
+//            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
+//
+//        }
     }
 
     /**
@@ -287,9 +287,15 @@ public class XUpdater {
      * @param marker
      * @param style
      */
-    private void updateRow(final Row targetRow, final Row sourceRow, final HashMap<Integer, Integer> map, final String marker, final CellStyle style) {
+    private void updateRow(final Row targetRow, final Row sourceRow, final Map<Integer, Integer> map, final String marker, final CellStyle style) {
         for (int targetIndex : map.keySet()) {
             int sourceIndex = map.get(targetIndex);
+//            if (targetIndex == 9) {
+//                System.out.println("Column Imponibile: old value = " + targetRow.getCell(targetIndex).getNumericCellValue());
+//
+//                System.out.println("new value = " + sourceRow.getCell(sourceIndex).getNumericCellValue());
+//            }
+
             Cell sourceCell = sourceRow.getCell(sourceIndex);
             if (sourceCell == null) {
                 System.out.println("source column " + sourceIndex + " is not present. Skipping it.");
