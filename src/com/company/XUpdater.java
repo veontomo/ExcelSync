@@ -29,14 +29,21 @@ public class XUpdater {
     private final List<String> blacklist;
 
     private HashMap<String, Integer> targetIndex;
-    private List<HashMap<String, Integer>> sourcesIndex;
+    /**
+     * Collection of indexes of all source files. The structure is as follows:
+     * [alias_1 => index_1, alias_2 => index_2, ...]
+     * where each index has the following structure:
+     * [key_1 => pos_1, key_2 => pos_2, ...]
+     * where pos_i stands for the number of row containing key_i.
+     */
+    private Map<String, Map<String, Integer>> sourcesIndex;
 
 
     /**
      * list of keys that are present in both targetIndex and sourcesIndex
      */
 
-    private HashMap<String, Integer> duplicates;
+    private HashMap<String, String> duplicates;
     /**
      * list of keys that are present in targetIndex and not present in any of the sourcesIndex
      */
@@ -45,7 +52,7 @@ public class XUpdater {
     /**
      * list of keys that are present in one of the sourcesIndex and not present in the targetIndex
      */
-    private HashMap<String, Integer> extra;
+    private HashMap<String, String> extra;
 
     /**
      * Style to be applied to a cell that is to be appended to the rows present in {@link #missing}
@@ -128,13 +135,14 @@ public class XUpdater {
         // first pass: iterate over the targetIndex and control the presence in the sourcesIndex
         for (String key : targetIndex.keySet()) {
             isFoundInSources = false;
-            for (int i = 0; i < sourcesLen; i++) {
-                if (sourcesIndex.get(i).containsKey(key)) {
+            for (String alias : sourcesIndex.keySet()) {
+
+                if (sourcesIndex.get(alias).containsKey(key)) {
                     if (duplicates.containsKey(key)) {
-                        throw new Exception("key " + key + " has already been found in source n. " + i + ". Resolve to proceed.");
+                        throw new Exception("key " + key + " has already been found in source with alias " + alias + ". Resolve to proceed.");
                     }
                     isFoundInSources = true;
-                    duplicates.put(key, i);
+                    duplicates.put(key, alias);
                 }
             }
             if (!isFoundInSources) {
@@ -142,41 +150,39 @@ public class XUpdater {
             }
         }
         // second pass: iterate over the sourcesIndex and control if they contain keys that are not in the targetIndex
-        for (int i = 0; i < sourcesLen; i++) {
-            for (String key : sourcesIndex.get(i).keySet()) {
+        for (String alias : sources.keySet()){
+            for (String key : sourcesIndex.get(alias).keySet()) {
                 if (targetIndex.containsKey(key)) {
                     // cross check: the variable "duplicates" must contain this key as well.
-                    if (duplicates.containsKey(key) && duplicates.get(key) == i) {
-//                        System.out.println("cross-check is OK");
+                    if (duplicates.containsKey(key) && duplicates.get(key).equals(alias)) {
+                        System.out.println("cross-check is OK");
                     } else {
-                        System.out.println("cross-check is not OK for key " + key + " that is supposed to be in set " + i);
+                        System.out.println("cross-check is not OK for key " + key + " that is supposed to be in set " + alias);
                     }
                 } else {
                     if (extra.containsKey(key)) {
-                        System.out.println("key " + key + " is found in source n. " + i + " (zero-based), while it has already been added to the extra index.");
+                        System.out.println("key " + key + " is found in source n. " + alias + ", while it has already been added to the extra index.");
                     } else {
-                        extra.put(key, i);
+                        extra.put(key, alias);
                     }
                 }
             }
         }
-
     }
 
     /**
      * Create index for the target workbook and a list of indices for each of the source workbooks.
      */
     private void initializeIndices() throws Exception {
-        sourcesIndex = new ArrayList<>();
+        sourcesIndex = new HashMap<>();
         targetIndex = index(target, targetIndexCol);
-        for (int i = 0; i < sourcesLen; i++) {
-//            sourcesIndex.add(index(sources[i], sourceIndexCol));
+        for (String key : sources.keySet()) {
+            sourcesIndex.put(key, index(sources.get(key), sourceIndexCol));
+
         }
-
-
     }
 
-    public HashMap<String, Integer> getDuplicates() {
+    public Map<String, String> getDuplicates() {
         return duplicates;
     }
 
@@ -184,7 +190,7 @@ public class XUpdater {
         return missing;
     }
 
-    public HashMap<String, Integer> getExtra() {
+    public HashMap<String, String> getExtra() {
         return extra;
     }
 
@@ -234,21 +240,21 @@ public class XUpdater {
 
 
     private void updateDuplicates() {
-//        for (String key : duplicates.keySet()) {
-//            int targetRowNum = targetIndex.get(key);
-//            Row targetRow = target.getSheetAt(0).getRow(targetRowNum);
-//            int sourceNum = duplicates.get(key);
-//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
-//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
-//            String targetKey = targetRow.getCell(targetIndexCol).getStringCellValue();
-//            String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
+        for (String key : duplicates.keySet()) {
+            int targetRowNum = targetIndex.get(key);
+            Row targetRow = target.getSheetAt(0).getRow(targetRowNum);
+            String alias = duplicates.get(key);
+            int sourceRowNum = sourcesIndex.get(alias).get(key);
+            Row sourceRow = sources.get(alias).getSheetAt(0).getRow(sourceRowNum);
+            String targetKey = targetRow.getCell(targetIndexCol).getStringCellValue();
+            String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
 //             cross-check control
-//            if (key.equals(sourceKey) && key.equals(targetKey)) {
-//                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
-//            } else {
-//                System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
-//            }
-//        }
+            if (key.equals(sourceKey) && key.equals(targetKey)) {
+                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
+            } else {
+                System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
+            }
+        }
 
     }
 
@@ -266,16 +272,16 @@ public class XUpdater {
     }
 
     private void updateExtra() {
-//        for (String key : extra.keySet()) {
-//            int sourceNum = extra.get(key);
-//            int sourceRowNum = sourcesIndex.get(sourceNum).get(key);
-//            Row sourceRow = sources[sourceNum].getSheetAt(0).getRow(sourceRowNum);
-//            int totalRowNum = target.getSheetAt(0).getLastRowNum();
-//            Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
-//            targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-//            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
-//
-//        }
+        for (String key : extra.keySet()) {
+            String alias = extra.get(key);
+            int sourceRowNum = sourcesIndex.get(alias).get(key);
+            Row sourceRow = sources.get(alias).getSheetAt(0).getRow(sourceRowNum);
+            int totalRowNum = target.getSheetAt(0).getLastRowNum();
+            Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
+            targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
+            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
+
+        }
     }
 
     /**

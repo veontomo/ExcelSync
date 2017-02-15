@@ -20,6 +20,7 @@ fun main(args: Array<String>) {
     val options = Options()
     options.addOption(TOKEN_DIR, true, "set the working folder")
     options.addOption(TOKEN_TARGET, true, "set the target file name in the working folder")
+    options.addOption(TOKEN_OUT, true, "set the output file name to be saved in the working folder")
     val option = Option(TOKEN_SOURCES, "set the source file names and their aliases")
     option.args = Option.UNLIMITED_VALUES
     options.addOption(option)
@@ -39,13 +40,13 @@ fun main(args: Array<String>) {
         println("No source files are set.")
         return
     }
-//    if (!cmd.hasOption(TOKEN_OUT)) {
-//        println("No output file is set.")
-//        return
-//    }
+    if (!cmd.hasOption(TOKEN_OUT)) {
+        println("No output file is set.")
+        return
+    }
     val folderName = cmd.getOptionValue(TOKEN_DIR)
     val target = folderName + cmd.getOptionValue(TOKEN_TARGET)
-//    val outfile = folderName + cmd.getOptionValue(TOKEN_OUT)
+    val outfile = folderName + cmd.getOptionValue(TOKEN_OUT)
     val sourcesRaw = cmd.getOptionValues(TOKEN_SOURCES)
 
     val len = sourcesRaw.size
@@ -94,7 +95,7 @@ fun main(args: Array<String>) {
     val duplicates = updater.duplicates
     val extra = updater.extra
     val missing = updater.missing
-    println("duplicates: " + duplicates.size)
+    println("duplicates: ${duplicates.size}: ${duplicates.map { it.key + "->" + it.value }.joinToString { it }}")
     println("missing: " + missing.size)
     println("extra: " + extra.size)
 
