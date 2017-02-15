@@ -244,7 +244,9 @@ public class XUpdater {
         updateExtra();
     }
 
-
+    /**
+     * Update rows of the target workbook that are present as well in source workbooks.
+     */
     private void updateDuplicates() {
         for (String key : duplicates.keySet()) {
             int targetRowNum = targetIndex.get(key);
@@ -260,9 +262,35 @@ public class XUpdater {
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
+            Map<Integer, String> data = new HashMap<>();
+
+            data.put(16, "Dominiando");
+            data.put(17, alias);
+            data.put(18, alias + " SRL");
+            data.put(19, key);
+            data.put(23, key);
+            suggestCellData(targetRow, data);
             markRow(targetRow, 25, markerForDuplicates, styleForDuplicates);
         }
 
+    }
+
+    /**
+     * Fill in given row cells with provided strings. If a cell exists, it is skipped.
+     *
+     * @param row  the cells of this row are to be updated
+     * @param data map from the cell index (zero based) to the string content it should contain. If a cell exists,
+     *             its content is not modified.
+     */
+    private void suggestCellData(final Row row, final Map<Integer, String> data) {
+        Cell cell;
+        for (int pos : data.keySet()) {
+            cell = row.getCell(pos);
+            if (cell == null) {
+                cell = row.createCell(pos, Cell.CELL_TYPE_STRING);
+                cell.setCellValue(data.get(pos));
+            }
+        }
     }
 
     /**
@@ -325,7 +353,7 @@ public class XUpdater {
      * @param data map from cell numbers to string that the cell should contain.
      * @throws Exception if the row already contains at least one cell that should be filled in.
      */
-    private void fillInRowCells(Row row, Map<Integer, String> data) throws Exception {
+    private void fillInRowCells(final Row row, final Map<Integer, String> data) throws Exception {
         for (Integer index : data.keySet()) {
             Cell cell = row.getCell(index);
             if (cell == null) {
