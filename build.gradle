@@ -58,7 +58,7 @@ sourceSets {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.veontomo.htmlvalidator.MainKt'
+        attributes 'Main-Class': 'com.company.MainKt'
     }
     // This line of code recursively collects and copies all of a project's files
     // and adds them to the JAR itself. One can extend this task, to skip certain
@@ -71,6 +71,5 @@ dependencies {
     compile group: 'commons-cli', name: 'commons-cli', version: '1.3'
     compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.14'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile 'de.jodamob.kotlin:kotlin-runner-junit4:0.3.1'
 }
 

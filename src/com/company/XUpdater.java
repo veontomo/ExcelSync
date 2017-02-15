@@ -1,6 +1,6 @@
 package com.company;
 
-import com.sun.istack.internal.NotNull;
+//import com.sun.istack.internal.NotNull;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -82,7 +82,7 @@ public class XUpdater {
      * @param map            defines the mapping from the target workbook columns to the source workbook columns.
      */
     public XUpdater(final XSSFWorkbook workbook, final Map<String, XSSFWorkbook> workbooks,
-                    final int targetIndexCol, final int sourceIndexCol, @NotNull final Map<Integer, Integer> map,
+                    final int targetIndexCol, final int sourceIndexCol, final Map<Integer, Integer> map,
                     final String[] markers, final List<String> blacklist) {
         this.target = workbook;
         this.sources = workbooks;
