@@ -17,18 +17,12 @@ class XFileReader {
      * @return a XSSWorkbook instance
      */
     fun loadFromFile(filePath: String): XSSFWorkbook {
-        try {
-            val f = File(filePath)
-            val file = FileInputStream(f)
-            val workbook = XSSFWorkbook(file)
-            println("Loaded " + workbook.getSheetAt(0).physicalNumberOfRows + " rows from file " + filePath)
-            file.close()
-            return workbook
-        } catch (e: Exception) {
-            println("Error " + e.message + " when processing file " + filePath)
-            println("Try to open the file by Excel and save it with extension .xlsx")
-        }
-
+        val f = File(filePath)
+        val file = FileInputStream(f)
+        val workbook = XSSFWorkbook(file)
+        println("Loaded " + workbook.getSheetAt(0).physicalNumberOfRows + " rows from file " + filePath)
+        file.close()
+        return workbook
     }
 
 

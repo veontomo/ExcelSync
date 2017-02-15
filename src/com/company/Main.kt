@@ -1,8 +1,6 @@
 package com.company
 
-import org.apache.commons.cli.DefaultParser
-import org.apache.commons.cli.Option
-import org.apache.commons.cli.Options
+import org.apache.commons.cli.*
 import java.io.File
 import java.io.FileOutputStream
 
@@ -13,17 +11,42 @@ fun main(args: Array<String>) {
     val TOKEN_SOURCES = "s"
     val TOKEN_OUT = "o"
     val options = Options()
-    options.addOption(TOKEN_DIR, true, "set the working folder")
-    options.addOption(TOKEN_TARGET, true, "set the target file name in the working folder")
-    options.addOption(TOKEN_OUT, true, "set the output file name to be saved in the working folder")
-    val option = Option(TOKEN_SOURCES, "set the source file names and their aliases")
-    option.args = Option.UNLIMITED_VALUES
-    options.addOption(option)
 
+    val optionWorkDir = Option.builder(TOKEN_DIR).argName("dir").desc("set the working folder").hasArg().required().build()
+
+    val optionTargetFile = Option.builder(TOKEN_TARGET)
+            .argName("file")
+            .desc("set the target file name in the working folder")
+            .hasArg()
+            .required()
+            .build()
+    val optionOutputFile = Option.builder(TOKEN_OUT)
+            .argName("file")
+            .desc("set the output file name to be saved in the working folder")
+            .hasArg()
+            .required()
+            .build()
+    val optionSourceFiles = Option.builder(TOKEN_SOURCES)
+            .argName("alias=files")
+            .desc("set the source file names and their aliases")
+            .numberOfArgs(2)
+            .required(false)
+            .valueSeparator('=')
+            .build()
+//    optionSourceFiles.args = Option.UNLIMITED_VALUES
+
+    options.addOption(optionWorkDir)
+    options.addOption(optionTargetFile)
+    options.addOption(optionOutputFile)
+    options.addOption(optionSourceFiles)
+
+    val formatter = HelpFormatter()
+    formatter.printHelp("ExcelSync", options)
+    val test = listOf<String>("-d", "sss", "-o", "result.txt", "-t", "input file", "-s A=B", "-s X=Y").toTypedArray()
     val parser = DefaultParser()
-    val cmd = parser.parse(options, args)
+    val cmd = parser.parse(options, test)
     if (!cmd.hasOption(TOKEN_DIR)) {
-        println("No working directory is set")
+        println("Working folder is not set.")
         return
     }
 
@@ -60,7 +83,7 @@ fun main(args: Array<String>) {
     for (i in 0..(len - 2) step 2) {
         sources.put(sourcesRaw[i], folderName + sourcesRaw[i + 1])
     }
-    println("source files: ${sources.map { "${it.value} as ${it.key}"}.joinToString { it }}")
+    println("source files: ${sources.map { "${it.value} as ${it.key}" }.joinToString { it }}")
 
 
     val fr = XFileReader()
