@@ -2,10 +2,7 @@ package com.company;
 
 import com.sun.istack.internal.NotNull;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -50,7 +47,8 @@ public class XUpdater {
     private List<String> missing;
 
     /**
-     * list of keys that are present in one of the sourcesIndex and not present in the targetIndex
+     * Contains strings that are present in one of the source indexes and NOT present in the target index.
+     * The values of this map are aliases of the source files in which the above mentioned strings are found.
      */
     private HashMap<String, String> extra;
 
@@ -71,6 +69,8 @@ public class XUpdater {
     private final String markerForDuplicates;
     private final String markerForExtra;
     private final String markerForMissing;
+
+    private final CellStyle dateCellStyle;
 
     /**
      * Constructor.
@@ -111,6 +111,12 @@ public class XUpdater {
         this.markerForExtra = markers[1];
         this.markerForMissing = markers[2];
 
+        // date formatter
+        dateCellStyle = target.createCellStyle();
+        CreationHelper createHelper = target.getCreationHelper();
+        dateCellStyle.setDataFormat(
+                createHelper.createDataFormat().getFormat("m/d/yy"));
+
     }
 
 
@@ -150,7 +156,7 @@ public class XUpdater {
             }
         }
         // second pass: iterate over the sourcesIndex and control if they contain keys that are not in the targetIndex
-        for (String alias : sources.keySet()){
+        for (String alias : sources.keySet()) {
             for (String key : sourcesIndex.get(alias).keySet()) {
                 if (targetIndex.containsKey(key)) {
                     // cross check: the variable "duplicates" must contain this key as well.
@@ -250,10 +256,11 @@ public class XUpdater {
             String sourceKey = sourceRow.getCell(sourceIndexCol).getStringCellValue();
 //             cross-check control
             if (key.equals(sourceKey) && key.equals(targetKey)) {
-                updateRow(targetRow, sourceRow, map, markerForDuplicates, styleForDuplicates);
+                updateRow(targetRow, sourceRow, map);
             } else {
                 System.out.println("mismatch in updating the keys! Duplicates contains: " + key + ", targetKey: " + targetKey + ", sourceKey: " + sourceKey);
             }
+            markRow(targetRow, 25, markerForDuplicates, styleForDuplicates);
         }
 
     }
@@ -266,8 +273,10 @@ public class XUpdater {
         for (String key : missing) {
             int rowNum = targetIndex.get(key);
             Row row = target.getSheetAt(0).getRow(rowNum);
-            updateRow(row, null, map, markerForMissing, styleForMissing);
+            updateRow(row, null, map);
+            markRow(row, 25, markerForMissing, styleForMissing);
         }
+
 
     }
 
@@ -279,9 +288,54 @@ public class XUpdater {
             int totalRowNum = target.getSheetAt(0).getLastRowNum();
             Row targetRow = target.getSheetAt(0).createRow(totalRowNum + 1);
             targetRow.createCell(targetIndexCol, Cell.CELL_TYPE_STRING).setCellValue(key);
-            updateRow(targetRow, sourceRow, map, markerForExtra, styleForExtra);
+            updateRow(targetRow, sourceRow, map);
+            // set up by hand
+            Map<Integer, String> data = new HashMap<>();
+            data.put(2, "Confermato");
+            data.put(3, "Confermato");
+            data.put(13, "Sì");
+
+            data.put(16, "Dominiando");
+            data.put(17, alias);
+            data.put(18, alias + " SRL");
+            data.put(19, key);
+            data.put(23, key);
+
+            try {
+                fillInRowCells(targetRow, data);
+            } catch (Exception e) {
+                System.out.println("Error when adjusting an extra row for " + key + " from " + alias + ": " + e.getMessage());
+            }
+            targetRow.getCell(5).setCellStyle(dateCellStyle);
+            targetRow.getCell(6).setCellStyle(dateCellStyle);
+            targetRow.getCell(7).setCellStyle(dateCellStyle);
+            Cell cell = targetRow.createCell(22);
+            cell.setCellValue(targetRow.getCell(7).getDateCellValue());
+            cell.setCellStyle(dateCellStyle);
+
+            markRow(targetRow, 25, markerForExtra, styleForExtra);
 
         }
+    }
+
+    /**
+     * Create cells in the row and fill them in with given strings.
+     *
+     * @param row  the row whose cell are to be filled in
+     * @param data map from cell numbers to string that the cell should contain.
+     * @throws Exception if the row already contains at least one cell that should be filled in.
+     */
+    private void fillInRowCells(Row row, Map<Integer, String> data) throws Exception {
+        for (Integer index : data.keySet()) {
+            Cell cell = row.getCell(index);
+            if (cell == null) {
+                cell = row.createCell(index, Cell.CELL_TYPE_STRING);
+            } else {
+                throw new Exception("Cell n. " + index + " already exists! It contains: " + cell.getStringCellValue());
+            }
+            cell.setCellValue(data.get(index));
+        }
+
     }
 
     /**
@@ -290,25 +344,17 @@ public class XUpdater {
      * @param targetRow
      * @param sourceRow
      * @param map
-     * @param marker
-     * @param style
      */
-    private void updateRow(final Row targetRow, final Row sourceRow, final Map<Integer, Integer> map, final String marker, final CellStyle style) {
-        for (int targetIndex : map.keySet()) {
-            int sourceIndex = map.get(targetIndex);
-//            if (targetIndex == 9) {
-//                System.out.println("Column Imponibile: old value = " + targetRow.getCell(targetIndex).getNumericCellValue());
-//
-//                System.out.println("new value = " + sourceRow.getCell(sourceIndex).getNumericCellValue());
-//            }
-
-            Cell sourceCell = sourceRow.getCell(sourceIndex);
+    private void updateRow(final Row targetRow, final Row sourceRow, final Map<Integer, Integer> map) {
+        for (int targetCellNum : map.keySet()) {
+            int sourceCellNum = map.get(targetCellNum);
+            Cell sourceCell = sourceRow.getCell(sourceCellNum);
             if (sourceCell == null) {
-                System.out.println("source column " + sourceIndex + " is not present. Skipping it.");
+                System.out.println("source column " + sourceCellNum + " is not present. Skipping it.");
                 continue;
             }
             int sourceCellType = sourceCell.getCellType();
-            Cell targetCell = targetRow.getCell(targetIndex);
+            Cell targetCell = targetRow.getCell(targetCellNum);
 
             if (targetCell != null && sourceCellType != targetCell.getCellType()) {
                 System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType()
@@ -316,7 +362,7 @@ public class XUpdater {
                 continue;
             }
             if (targetCell == null) {
-                targetCell = targetRow.createCell(targetIndex, sourceCellType);
+                targetCell = targetRow.createCell(targetCellNum, sourceCellType);
             }
 
             switch (sourceCellType) {
@@ -336,18 +382,31 @@ public class XUpdater {
                     System.out.println("Cell type " + sourceCellType + " is not supported. Skipping the update of this cell.");
             }
         }
-        // create a new cell at the end of the row if there exists either marker or style or both.
-        if (marker != null || style != null) {
-            Cell cell = targetRow.createCell(targetRow.getLastCellNum() + 1, Cell.CELL_TYPE_STRING);
-            if (marker != null) {
-                cell.setCellValue(marker);
-            }
-            if (style != null) {
-                cell.setCellStyle(style);
-            }
+
+
+    }
+
+
+    /**
+     * Insert a marker at a cell with given number and apply cell styles.
+     *
+     * @param targetRow
+     * @param marker
+     * @param style
+     * @param cellNum   cell number (zero based) at which to insert the marker. -1 in order to insert at the end of the row.
+     */
+    private void markRow(Row targetRow, int cellNum, String marker, CellStyle style) {
+        int pos = cellNum == -1 ? targetRow.getLastCellNum() + 1 : cellNum;
+        Cell cell = targetRow.getCell(cellNum);
+        if (cell == null) {
+            cell = targetRow.createCell(pos, Cell.CELL_TYPE_STRING);
         }
-
-
+        if (marker != null) {
+            cell.setCellValue(marker);
+        }
+        if (style != null) {
+            cell.setCellStyle(style);
+        }
     }
 
 }

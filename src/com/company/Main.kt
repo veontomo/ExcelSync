@@ -61,25 +61,12 @@ fun main(args: Array<String>) {
 
 
     println("source: ${sources.map { it -> "${it.key} -> ${it.value} " }}")
-//    return
 
-    // the target file and list of the source files
-//    val target = folderName + args[1]
-//    println("target file: $target")
-//    val sources = Arrays.copyOfRange(args, 2, args.size).map { it -> folderName + it }
-
-
-//    println("source files: ${sources.joinToString { it }}")
-//    val sourcesLen = sources.size
     val fr = XFileReader()
     val workbookA = fr.loadFromFile(target)
     val workbooks = sources.map { it.key to fr.loadFromFile(it.value) }.toMap()
 
 
-//    for (i in 0..sourcesLen - 1) {
-//        workbooks.put() = fr.loadFromFile(sources[i])
-//
-//    }
     // correspondence between columns of the target workbook and the source workbooks.
     val mapping = mapOf(1 to 0, 5 to 3, 6 to 3, 7 to 2, 8 to 5, 9 to 6, 10 to 7, 11 to 8, 12 to 9, 15 to 4)
 
@@ -96,12 +83,12 @@ fun main(args: Array<String>) {
     val extra = updater.extra
     val missing = updater.missing
     println("duplicates: ${duplicates.size}: ${duplicates.map { it.key + "->" + it.value }.joinToString { it }}")
-    println("missing: " + missing.size)
-    println("extra: " + extra.size)
+    println("missing: ${missing.size}")
+    println("extra:  ${extra.size} ${extra.map { it.key +" -> " + it.value  }.joinToString { it }} ")
 
     updater.update()
 
-    val out = FileOutputStream(File(folderName + "updated.xlsx"))
+    val out = FileOutputStream(File(outfile))
     workbookA.write(out)
 }
 
