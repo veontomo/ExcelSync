@@ -160,11 +160,10 @@ public class XUpdater {
             for (String key : sourcesIndex.get(alias).keySet()) {
                 if (targetIndex.containsKey(key)) {
                     // cross check: the variable "duplicates" must contain this key as well.
-                    if (duplicates.containsKey(key) && duplicates.get(key).equals(alias)) {
-                        System.out.println("cross-check is OK");
-                    } else {
+                    if (!(duplicates.containsKey(key) && duplicates.get(key).equals(alias))) {
                         System.out.println("cross-check is not OK for key " + key + " that is supposed to be in set " + alias);
                     }
+
                 } else {
                     if (extra.containsKey(key)) {
                         System.out.println("key " + key + " is found in source n. " + alias + ", while it has already been added to the extra index.");
@@ -385,7 +384,8 @@ public class XUpdater {
             Cell targetCell = targetRow.getCell(targetCellNum);
 
             if (targetCell != null && sourceCellType != targetCell.getCellType()) {
-                System.out.println("cell type mismatch: " + sourceCell.getCellType() + " vs " + targetCell.getCellType()
+                System.out.println("cell type mismatch: source cell n. " + sourceCellNum + " of type " + sourceCell.getCellType() + " vs target cell n. " + targetCellNum
+                        + " of type " + targetCell.getCellType()
                         + " for key " + targetRow.getCell(targetIndexCol).getStringCellValue() + ". Skipping it.");
                 continue;
             }

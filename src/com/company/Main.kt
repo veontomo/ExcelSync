@@ -3,13 +3,8 @@ package com.company
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Option
 import org.apache.commons.cli.Options
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
-
-
 import java.io.File
 import java.io.FileOutputStream
-import java.sql.*
-import java.util.*
 
 
 fun main(args: Array<String>) {
@@ -31,36 +26,42 @@ fun main(args: Array<String>) {
         println("No working directory is set")
         return
     }
+
+    val folderName = cmd.getOptionValue(TOKEN_DIR)
+    println("working folder: $folderName")
+
     if (!cmd.hasOption(TOKEN_TARGET)) {
         println("No target file is set.")
         return
     }
+    val target = folderName + cmd.getOptionValue(TOKEN_TARGET)
+    println("path to the target file: $target")
 
     if (!cmd.hasOption(TOKEN_SOURCES)) {
         println("No source files are set.")
         return
     }
+
+    val sourcesRaw = cmd.getOptionValues(TOKEN_SOURCES)
     if (!cmd.hasOption(TOKEN_OUT)) {
         println("No output file is set.")
         return
     }
-    val folderName = cmd.getOptionValue(TOKEN_DIR)
-    val target = folderName + cmd.getOptionValue(TOKEN_TARGET)
     val outfile = folderName + cmd.getOptionValue(TOKEN_OUT)
-    val sourcesRaw = cmd.getOptionValues(TOKEN_SOURCES)
+    println("output file name: $outfile")
 
     val len = sourcesRaw.size
     if (len % 2 != 0) {
         println("Each file name must be preceded by its alias, instead the following is given: ${sourcesRaw.joinToString { it }}")
         return
     }
+
     val sources = mutableMapOf<String, String>()
     for (i in 0..(len - 2) step 2) {
         sources.put(sourcesRaw[i], folderName + sourcesRaw[i + 1])
     }
+    println("source files: ${sources.map { "${it.value} as ${it.key}"}.joinToString { it }}")
 
-
-    println("source: ${sources.map { it -> "${it.key} -> ${it.value} " }}")
 
     val fr = XFileReader()
     val workbookA = fr.loadFromFile(target)
@@ -82,37 +83,14 @@ fun main(args: Array<String>) {
     val duplicates = updater.duplicates
     val extra = updater.extra
     val missing = updater.missing
-    println("duplicates: ${duplicates.size}: ${duplicates.map { it.key + "->" + it.value }.joinToString { it }}")
-    println("missing: ${missing.size}")
-    println("extra:  ${extra.size} ${extra.map { it.key +" -> " + it.value  }.joinToString { it }} ")
+    println("duplicates: ${duplicates.size} items:\n ${duplicates.map { it.key + " -> " + it.value }.joinToString(", ", "", "", 5, "...", { it })} ")
+    println("missing: ${missing.size} item:\n ${missing.joinToString(", ", "", "", 5, "...", { it })}")
+    println("extra: ${extra.size} items:\n ${extra.map { it.key + " -> " + it.value }.joinToString(", ", "", "", 5, "...", { it })} ")
 
-    updater.update()
+//    updater.update()
 
     val out = FileOutputStream(File(outfile))
     workbookA.write(out)
 }
 
-fun dbRead(dbName: String, tblName: String) {
-    val connectionProps = Properties()
-    connectionProps.put("user", "siti_local")
-    connectionProps.put("password", "siti_local_read")
-    val pattern = "[^\\p{Alnum}_]"
-    val dbName2 = dbName.replace(pattern.toRegex(), "")
-    val tblName2 = tblName.replace(pattern.toRegex(), "")
-    try {
-        val conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dbName2, connectionProps)
-        val statement = conn.createStatement()
-        val result = statement.executeQuery("SELECT * FROM $tblName2;")
-        print(result.fetchSize)
-        while (result.next()) {
-            println(result.getString(2))
-        }
-
-
-        conn.close()
-    } catch (e: SQLException) {
-        e.printStackTrace()
-    }
-
-}
 

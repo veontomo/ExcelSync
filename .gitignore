@@ -3,3 +3,6 @@ excel_data/
 out/
 *.xlsx
 *.xls
+/.gradle/
+/build/
+/gradle/
