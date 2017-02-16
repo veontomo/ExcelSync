@@ -11,22 +11,23 @@ import java.util.HashMap
  */
 /**
 
- * @param workbook       a target workbook
- * *
- * @param workbooks      array of source workbooks
- * *
+ * @param target       a target workbook
+ * @param sources      array of source workbooks
  * @param targetIndexCol a number of the column of the target workbook w.r.t. which an index is to be constructed
- * *
  * @param sourceIndexCol a number of the column of the source workbooks w.r.t. which an index is to be constructed
- * *
  * @param map            defines the mapping from the target workbook columns to the source workbook columns.
+ * @param blacklist      list of words to be excluded from indexing
+ *
+ *
  */
 class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String, XSSFWorkbook>,
                private val targetIndexCol: Int, private val sourceIndexCol: Int, private val map: Map<Int, Int>,
                private val blacklist: List<String>) {
-    private val sourcesLen: Int
-
-    private var targetIndex: Map<String, Int> = index(target, targetIndexCol)
+    /**
+     * index of the target workbook.
+     * @see index
+     */
+    private val targetIndex: Map<String, Int> = index(target, targetIndexCol)
     /**
      * Collection of indexes of all source files. The structure is as follows:
      * [alias_1 => index_1, alias_2 => index_2, ...]
@@ -38,9 +39,9 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
 
 
     /**
-     * list of keys that are present in both targetIndex and sourcesIndex
+     * list of keys that are present in both targetIndex and sourcesIndex.
+     * The values are the aliases of the source indexes in which the corresponding key is present.
      */
-
     private var duplicatesMap: MutableMap<String, String> = mutableMapOf()
 
     val duplicates: Map<String, String>
@@ -89,10 +90,9 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
     private val dateCellStyle: CellStyle
 
     init {
+//       targetIndex = index(target, targetIndexCol)
 
-        targetIndex = index(target, targetIndexCol)
-
-        this.sourcesLen = sources.size
+//        duplicatesMap = sourcesIndex.map { entry -> getDuplicates(targetIndex.keys, entry.value.keys).map{Pair(entry.key, it)}.toMap() }
 
         this.styleForMissing = target.createCellStyle()
         val font = target.createFont()
@@ -119,25 +119,15 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
 
 
     /**
-     * Finds the sourcesIndex that contain a key from the targetIndex.
+     * Look up the target and the sources' workbooks in order in order to find strings that are:
+     * 1. present in the target index and at least in one of the source one's (called duplicates)
+     * 2. present only in the target index (called missing)
+     * 3. present at least in one of the source indexes and not present in the target one (called extra)
      *
-     *
-     * If a key is found in multiple sourcesIndex, an exception is thrown.
-     *
-     *
-     * Returns a hash map from a string to an integer that is the ordinal number of the source in the source list in which
-     * the key is found.
-
-     * @return
+     * After execution of this method,
      */
     @Throws(Exception::class)
     fun analyze() {
-//        duplicatesMap = HashMap<String, String>()
-//        missingList = ArrayList<String>()
-//        extraMap = HashMap<String, String>()
-
-//        initializeIndices()
-
         var isFoundInSources: Boolean
         // first pass: iterate over the targetIndex and control the presence in the sourcesIndex
         for (key in targetIndex.keys) {
@@ -145,15 +135,15 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
             for (alias in sourcesIndex.keys) {
 
                 if (sourcesIndex[alias]!!.containsKey(key)) {
-                    if (duplicatesMap!!.containsKey(key)) {
+                    if (duplicatesMap.containsKey(key)) {
                         throw Exception("key $key has already been found in source with alias $alias. Resolve to proceed.")
                     }
                     isFoundInSources = true
-                    duplicatesMap!!.put(key, alias)
+                    duplicatesMap.put(key, alias)
                 }
             }
             if (!isFoundInSources) {
-                missingList!!.add(key)
+                missingList.add(key)
             }
         }
         // second pass: iterate over the sourcesIndex and control if they contain keys that are not in the targetIndex
@@ -176,29 +166,13 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
         }
     }
 
-    /**
-     * Create index for the target workbook and a list of indices for each of the source workbooks.
-     */
-    @Throws(Exception::class)
-    private fun initializeIndices() {
-//        sourcesIndex = HashMap<String, Map<String, Int>>()
-//        targetIndex = index(target, targetIndexCol)
-//        for (key in sources.keys) {
-//            sourcesIndex!!.put(key, index(sources[key], sourceIndexCol))
-//
-//        }
-    }
-
 
     /**
      * Create an index of given workbook: a map from string content of cells of given column to the number of row
      * in which that string is found.
-
-     * @param workbook
-     * *
-     * @param column
-     * *
-     * @return
+     * @param workbook  only the first sheet is considered for the moment.
+     * @param column number of column w.r.t. which the index is created. Assume that the cells of this column are  of string type.
+     * @return a map from string to integer.
      */
     @Throws(Exception::class)
     fun index(workbook: XSSFWorkbook, column: Int): Map<String, Int> {
@@ -229,7 +203,7 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
     }
 
     /**
-     * Updates the [.target] with data stored in the [.sources] using the mapping [.map] between their columns.
+     * Updates the target with data stored in the sources using the mapping map between their columns.
      */
     fun update() {
         updateDuplicates()
@@ -292,8 +266,6 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
             updateRow(row, null, map)
             markRow(row, 25, markerForMissing, styleForMissing)
         }
-
-
     }
 
     private fun updateExtra() {
@@ -328,11 +300,8 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
 
     /**
      * Create cells in the row and fill them in with given strings.
-
      * @param row  the row whose cell are to be filled in
-     * *
      * @param data map from cell numbers to string that the cell should contain.
-     * *
      * @throws Exception if the row already contains at least one cell that should be filled in.
      */
     @Throws(Exception::class)
@@ -351,11 +320,8 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
 
     /**
      * Updates targetRow with information from the sourceRow using given map as a correspondence between the row cells.
-
      * @param targetRow
-     * *
      * @param sourceRow
-     * *
      * @param map
      */
     private fun updateRow(targetRow: Row, sourceRow: Row?, map: Map<Int, Int>) {
@@ -394,13 +360,9 @@ class XUpdater(private val target: XSSFWorkbook, private val sources: Map<String
 
     /**
      * Insert a marker at a cell with given number and apply cell styles.
-
      * @param targetRow
-     * *
      * @param marker
-     * *
      * @param style
-     * *
      * @param cellNum   cell number (zero based) at which to insert the marker. -1 in order to insert at the end of the row.
      */
     private fun markRow(targetRow: Row, cellNum: Int, marker: String?, style: CellStyle?) {
