@@ -27,29 +27,33 @@ fun main(args: Array<String>) {
             .required()
             .build()
     val optionSourceFiles = Option.builder(TOKEN_SOURCES)
-            .argName("alias=files")
+            .argName("alias=file")
             .desc("set the source file names and their aliases")
             .numberOfArgs(2)
             .required(false)
             .valueSeparator('=')
             .build()
-//    optionSourceFiles.args = Option.UNLIMITED_VALUES
 
     options.addOption(optionWorkDir)
     options.addOption(optionTargetFile)
     options.addOption(optionOutputFile)
     options.addOption(optionSourceFiles)
 
-    val formatter = HelpFormatter()
-    formatter.printHelp("ExcelSync", options)
-    val test = listOf<String>("-d", "sss", "-o", "result.txt", "-t", "input file", "-s A=B", "-s X=Y").toTypedArray()
+
     val parser = DefaultParser()
-    val cmd = parser.parse(options, test)
-    if (!cmd.hasOption(TOKEN_DIR)) {
-        println("Working folder is not set.")
+    var cmd: CommandLine?
+    try {
+        cmd = parser.parse(options, args)
+    } catch (e: ParseException) {
+        val formatter = HelpFormatter()
+        formatter.printHelp("ExcelSync", options)
         return
     }
 
+    if (!cmd!!.hasOption(TOKEN_DIR)) {
+        println("Working folder is not set.")
+        return
+    }
     val folderName = cmd.getOptionValue(TOKEN_DIR)
     println("working folder: $folderName")
 
@@ -60,12 +64,6 @@ fun main(args: Array<String>) {
     val target = folderName + cmd.getOptionValue(TOKEN_TARGET)
     println("path to the target file: $target")
 
-    if (!cmd.hasOption(TOKEN_SOURCES)) {
-        println("No source files are set.")
-        return
-    }
-
-    val sourcesRaw = cmd.getOptionValues(TOKEN_SOURCES)
     if (!cmd.hasOption(TOKEN_OUT)) {
         println("No output file is set.")
         return
@@ -73,6 +71,13 @@ fun main(args: Array<String>) {
     val outfile = folderName + cmd.getOptionValue(TOKEN_OUT)
     println("output file name: $outfile")
 
+    if (!cmd.hasOption(TOKEN_SOURCES)) {
+        println("No source files are set.")
+        return
+    }
+
+    val sourcesRaw = cmd.getOptionValues(TOKEN_SOURCES)
+    println("sources raw: ${sourcesRaw.joinToString { it }}")
     val len = sourcesRaw.size
     if (len % 2 != 0) {
         println("Each file name must be preceded by its alias, instead the following is given: ${sourcesRaw.joinToString { it }}")
@@ -84,8 +89,6 @@ fun main(args: Array<String>) {
         sources.put(sourcesRaw[i], folderName + sourcesRaw[i + 1])
     }
     println("source files: ${sources.map { "${it.value} as ${it.key}" }.joinToString { it }}")
-
-
     val fr = XFileReader()
     val workbookA = fr.loadFromFile(target)
     val workbooks = sources.map { it.key to fr.loadFromFile(it.value) }.toMap()
