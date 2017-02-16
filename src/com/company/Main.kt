@@ -97,12 +97,10 @@ fun main(args: Array<String>) {
     // correspondence between columns of the target workbook and the source workbooks.
     val mapping = mapOf(1 to 0, 5 to 3, 6 to 3, 7 to 2, 8 to 5, 9 to 6, 10 to 7, 11 to 8, 12 to 9, 15 to 4)
 
-    // Strings to be added at the end of the updated rows
-    val markers = arrayOf("Aggiornato", "Nuovo", "Assente")
     // List of strings to be ignored when creating the index of each workbook
     val blacklist = listOf("Dominio", "Descrizione Sito")
 
-    val updater = XUpdater(workbookA, workbooks, 1, 0, mapping, markers, blacklist)
+    val updater = XUpdater(workbookA, workbooks, 1, 0, mapping, blacklist)
 
     updater.analyze()
 
@@ -111,9 +109,9 @@ fun main(args: Array<String>) {
     val missing = updater.missing
     println("duplicates: ${duplicates.size} items:\n ${duplicates.map { it.key + " -> " + it.value }.joinToString(", ", "", "", 5, "...", { it })} ")
     println("missing: ${missing.size} item:\n ${missing.joinToString(", ", "", "", 5, "...", { it })}")
-    println("extra: ${extra.size} items:\n ${extra.map { it.key + " -> " + it.value }.joinToString(", ", "", "", 5, "...", { it })} ")
+    println("extraMap: ${extra.size} items:\n ${extra.map { it.key + " -> " + it.value }.joinToString(", ", "", "", 5, "...", { it })} ")
 
-//    updater.update()
+    updater.update()
 
     val out = FileOutputStream(File(outfile))
     workbookA.write(out)
