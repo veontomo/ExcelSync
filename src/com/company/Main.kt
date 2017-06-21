@@ -10,6 +10,7 @@ fun main(args: Array<String>) {
     val TOKEN_TARGET = "t"
     val TOKEN_SOURCES = "s"
     val TOKEN_OUT = "o"
+    println(args.joinToString { it })
     val options = Options()
 
     val optionWorkDir = Option.builder(TOKEN_DIR).argName("dir").desc("set the working folder").hasArg().required().build()
@@ -41,20 +42,22 @@ fun main(args: Array<String>) {
 
 
     val parser = DefaultParser()
-    var cmd: CommandLine?
-    try {
-        cmd = parser.parse(options, args)
+    val cmd: CommandLine = try {
+        parser.parse(options, args)
     } catch (e: ParseException) {
         val formatter = HelpFormatter()
         formatter.printHelp("ExcelSync", options)
+        println(e.message)
         return
     }
 
-    if (!cmd!!.hasOption(TOKEN_DIR)) {
+    if (!cmd.hasOption(TOKEN_DIR)) {
         println("Working folder is not set.")
         return
     }
-    val folderName = cmd.getOptionValue(TOKEN_DIR)
+    val rawFolderName = cmd.getOptionValue(TOKEN_DIR)
+    val separ = File.separator
+    val folderName = rawFolderName + (if (rawFolderName.endsWith(separ)) "" else separ)
     println("working folder: $folderName")
 
     if (!cmd.hasOption(TOKEN_TARGET)) {
